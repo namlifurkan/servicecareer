@@ -276,7 +276,7 @@ export default async function HomePage() {
                 Şehirlere Göre İş Ara
               </h2>
               <p className="text-base text-secondary-600">
-                Türkiye'nin en popüler şehirlerinde binlerce iş fırsatı
+                Türkiye&apos;nin en popüler şehirlerinde binlerce iş fırsatı
               </p>
             </div>
 
@@ -424,7 +424,7 @@ export default async function HomePage() {
                     Profilini Oluştur
                   </h4>
                   <p className="text-sm text-secondary-600">
-                    CV'nizi yükleyin, deneyimlerinizi ve yeteneklerinizi ekleyin
+                    CV&apos;nizi yükleyin, deneyimlerinizi ve yeteneklerinizi ekleyin
                   </p>
                 </div>
 

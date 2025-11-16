@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { sendApplicationReceivedEmail, sendNewApplicationEmail } from '@/lib/email'
 import { toast } from 'sonner'
 import {
   Send,
@@ -185,13 +186,98 @@ export function JobDetailClient({ jobId, companyPhone, hasApplied, isLoggedIn }:
         applicationData.guest_phone = phone
       }
 
-      const { error: insertError } = await supabase
+      const { data: applicationInserted, error: insertError } = await supabase
         .from('applications')
         .insert(applicationData)
+        .select()
+        .single()
 
       if (insertError) throw insertError
 
       toast.success('Başvurunuz başarıyla gönderildi!', { id: 'application' })
+
+      // Get job details for emails
+      const { data: jobData } = await supabase
+        .from('jobs')
+        .select('title, company_id')
+        .eq('id', jobId)
+        .single()
+
+      if (jobData) {
+        // Get candidate details
+        let candidateEmail = ''
+        let candidateName = ''
+
+        if (user) {
+          // For logged-in users, get profile data
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('email, full_name')
+            .eq('id', user.id)
+            .single()
+
+          candidateEmail = profile?.email || user.email || ''
+          candidateName = profile?.full_name || 'Kullanıcı'
+        } else {
+          // For guest users, use form data
+          candidateEmail = applicationData.guest_email as string
+          candidateName = applicationData.guest_name as string
+        }
+
+        const jobTitle = jobData.title
+
+        // Get company details
+        let companyName = 'Şirket'
+        let employerEmail = ''
+        let employerName = ''
+
+        if (jobData.company_id) {
+          const { data: companyData } = await supabase
+            .from('companies')
+            .select('name, owner_id')
+            .eq('id', jobData.company_id)
+            .single()
+
+          companyName = companyData?.name || 'Şirket'
+
+          // Get employer profile
+          if (companyData?.owner_id) {
+            const { data: ownerProfile } = await supabase
+              .from('profiles')
+              .select('email, full_name')
+              .eq('id', companyData.owner_id)
+              .single()
+
+            employerEmail = ownerProfile?.email || ''
+            employerName = ownerProfile?.full_name || companyName
+          }
+        }
+
+        // Send confirmation email to candidate
+        const candidateEmailResult = await sendApplicationReceivedEmail(
+          candidateEmail,
+          candidateName,
+          jobTitle,
+          companyName
+        )
+        if (!candidateEmailResult.success) {
+          console.error('Failed to send application confirmation email:', candidateEmailResult.error)
+        }
+
+        // Send notification email to employer
+        if (employerEmail && applicationInserted) {
+          const employerEmailResult = await sendNewApplicationEmail(
+            employerEmail,
+            employerName,
+            candidateName,
+            jobTitle,
+            applicationInserted.id
+          )
+          if (!employerEmailResult.success) {
+            console.error('Failed to send employer notification email:', employerEmailResult.error)
+          }
+        }
+      }
 
       // Success - refresh page
       setShowModal(false)

@@ -49,7 +49,7 @@ export function CandidateProfileForm({ profile, candidateProfile }: CandidatePro
           title: formData.title,
           bio: formData.bio,
           city: formData.city,
-          skills: formData.skills.split(',').map(s => s.trim()).filter(Boolean),
+          skills: formData.skills.split(',').map((s: string) => s.trim()).filter(Boolean),
           linkedin_url: formData.linkedin_url,
           portfolio_url: formData.portfolio_url,
         })

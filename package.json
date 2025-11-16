@@ -15,6 +15,8 @@
     "supabase:gen-types": "supabase gen types typescript --local > lib/database.types.ts"
   },
   "dependencies": {
+    "@react-email/components": "^1.0.0",
+    "@react-email/render": "^2.0.0",
     "@supabase/ssr": "^0.1.0",
     "@supabase/supabase-js": "^2.39.0",
     "class-variance-authority": "^0.7.0",
@@ -23,6 +25,8 @@
     "next": "^15.0.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-email": "^5.0.1",
+    "resend": "^6.4.2",
     "sonner": "^2.0.7",
     "tailwind-merge": "^2.1.0",
     "tailwindcss-animate": "^1.0.7"

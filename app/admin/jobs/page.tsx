@@ -28,7 +28,7 @@ export default async function AdminJobsPage() {
   }
 
   // Get all jobs with company details
-  const { data: jobs, error } = await supabase
+  const { data: jobsRaw, error } = await supabase
     .from('jobs')
     .select(`
       id,
@@ -47,22 +47,50 @@ export default async function AdminJobsPage() {
       published_at,
       view_count,
       application_count,
-      companies (
-        id,
-        name,
-        logo_url,
-        is_verified
-      ),
-      cities (
-        id,
-        name
-      ),
-      categories!jobs_category_id_fkey (
-        id,
-        name
-      )
+      company_id,
+      city_id,
+      category_id
     `)
     .order('created_at', { ascending: false })
+
+  // Transform data to match expected structure
+  const jobs = await Promise.all(
+    (jobsRaw || []).map(async (job) => {
+      // Get company
+      const { data: company } = job.company_id
+        ? await supabase
+            .from('companies')
+            .select('id, name, logo_url, is_verified')
+            .eq('id', job.company_id)
+            .single()
+        : { data: null }
+
+      // Get city
+      const { data: city } = job.city_id
+        ? await supabase
+            .from('cities')
+            .select('id, name')
+            .eq('id', job.city_id)
+            .single()
+        : { data: null }
+
+      // Get category
+      const { data: category } = job.category_id
+        ? await supabase
+            .from('categories')
+            .select('id, name')
+            .eq('id', job.category_id)
+            .single()
+        : { data: null }
+
+      return {
+        ...job,
+        companies: company,
+        cities: city,
+        categories: category,
+      }
+    })
+  )
 
   // Log error if any
   if (error) {

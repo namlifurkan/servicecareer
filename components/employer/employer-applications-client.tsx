@@ -17,6 +17,7 @@ import {
   Clock
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { sendApplicationStatusEmail } from '@/lib/email'
 import { useRouter } from 'next/navigation'
 
 interface Application {
@@ -81,6 +82,9 @@ export function EmployerApplicationsClient({ applications, jobs }: EmployerAppli
     setLoading(applicationId)
     const supabase = createClient()
 
+    // Find the application to get its details
+    const application = applications.find(app => app.id === applicationId)
+
     const { error } = await supabase
       .from('applications')
       .update({ status: newStatus })
@@ -88,7 +92,43 @@ export function EmployerApplicationsClient({ applications, jobs }: EmployerAppli
 
     setLoading(null)
 
-    if (!error) {
+    if (!error && application) {
+      // Send status update email to candidate
+      const candidateEmail = application.profiles?.email || application.guest_email
+      const candidateName = application.profiles?.full_name || application.guest_name || 'Aday'
+      const jobTitle = application.jobs?.title || 'İş İlanı'
+
+      if (candidateEmail) {
+        // Get company name for the email
+        const { data: jobData } = await supabase
+          .from('jobs')
+          .select('company_id')
+          .eq('id', application.jobs.id)
+          .single()
+
+        let companyName = 'Şirket'
+        if (jobData?.company_id) {
+          const { data: companyData } = await supabase
+            .from('companies')
+            .select('name')
+            .eq('id', jobData.company_id)
+            .single()
+          companyName = companyData?.name || 'Şirket'
+        }
+
+        const emailResult = await sendApplicationStatusEmail(
+          candidateEmail,
+          candidateName,
+          jobTitle,
+          newStatus as 'pending' | 'reviewing' | 'approved' | 'rejected',
+          companyName
+        )
+
+        if (!emailResult.success) {
+          console.error('Failed to send status update email:', emailResult.error)
+        }
+      }
+
       router.refresh()
       // Update selected application if open
       if (selectedApplication?.id === applicationId) {

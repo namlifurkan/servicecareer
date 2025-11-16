@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { sendWelcomeEmail } from '@/lib/email'
 
 export async function login(formData: FormData) {
   const supabase = await createClient()
@@ -46,12 +47,15 @@ export async function login(formData: FormData) {
 export async function signup(formData: FormData) {
   const supabase = await createClient()
 
+  const email = formData.get('email') as string
+  const fullName = formData.get('full_name') as string
+
   const data = {
-    email: formData.get('email') as string,
+    email,
     password: formData.get('password') as string,
     options: {
       data: {
-        full_name: formData.get('full_name') as string,
+        full_name: fullName,
         role: formData.get('role') as string,
       },
     },
@@ -61,6 +65,13 @@ export async function signup(formData: FormData) {
 
   if (error) {
     return { error: error.message }
+  }
+
+  // Send welcome email after successful registration
+  const emailResult = await sendWelcomeEmail(email, fullName)
+  if (!emailResult.success) {
+    console.error('Failed to send welcome email:', emailResult.error)
+    // Continue anyway - don't fail the registration
   }
 
   revalidatePath('/', 'layout')

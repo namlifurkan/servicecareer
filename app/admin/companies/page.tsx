@@ -28,7 +28,7 @@ export default async function AdminCompaniesPage() {
   }
 
   // Get all companies with owner details
-  const { data: companies, error } = await supabase
+  const { data: companiesRaw, error } = await supabase
     .from('companies')
     .select(`
       id,
@@ -43,17 +43,37 @@ export default async function AdminCompaniesPage() {
       is_verified,
       is_active,
       created_at,
-      profiles!companies_owner_id_fkey (
-        id,
-        full_name,
-        email
-      ),
-      cities (
-        id,
-        name
-      )
+      owner_id,
+      city_id
     `)
     .order('created_at', { ascending: false })
+
+  // Transform data to match expected structure
+  const companies = await Promise.all(
+    (companiesRaw || []).map(async (company) => {
+      // Get owner profile
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('id, full_name, email')
+        .eq('id', company.owner_id)
+        .single()
+
+      // Get city
+      const { data: city } = company.city_id
+        ? await supabase
+            .from('cities')
+            .select('id, name')
+            .eq('id', company.city_id)
+            .single()
+        : { data: null }
+
+      return {
+        ...company,
+        profiles: profile,
+        cities: city,
+      }
+    })
+  )
 
   // Log error if any
   if (error) {

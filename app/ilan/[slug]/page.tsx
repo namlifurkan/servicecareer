@@ -69,7 +69,7 @@ export default async function JobDetailPage({ params }: { params: Promise<{ slug
   // Get current user
   const { data: { user } } = await supabase.auth.getUser()
 
-  // Get job with company details
+  // Get job with company and category details
   const { data: job } = await supabase
     .from('jobs')
     .select(`
@@ -83,6 +83,11 @@ export default async function JobDetailPage({ params }: { params: Promise<{ slug
         company_size,
         website,
         phone
+      ),
+      categories!jobs_category_id_fkey (
+        id,
+        name,
+        slug
       )
     `)
     .eq('slug', slug)
@@ -126,6 +131,10 @@ export default async function JobDetailPage({ params }: { params: Promise<{ slug
       companies (
         name,
         logo_url
+      ),
+      categories!jobs_category_id_fkey (
+        name,
+        slug
       )
     `)
     .eq('status', 'active')
@@ -152,6 +161,16 @@ export default async function JobDetailPage({ params }: { params: Promise<{ slug
                   İlanlar
                 </Link>
               </li>
+              {job.categories && (
+                <>
+                  <li className="text-secondary-400">/</li>
+                  <li>
+                    <span className="text-secondary-600">
+                      {job.categories.name}
+                    </span>
+                  </li>
+                </>
+              )}
               <li className="text-secondary-400">/</li>
               <li className="text-secondary-900 font-medium truncate max-w-xs">
                 {job.title}
@@ -233,6 +252,11 @@ export default async function JobDetailPage({ params }: { params: Promise<{ slug
 
                 {/* Tags */}
                 <div className="mt-4 flex flex-wrap gap-2">
+                  {job.categories && (
+                    <span className="px-3 py-1 text-xs font-medium bg-green-100 text-green-700 rounded-full">
+                      {job.categories.name}
+                    </span>
+                  )}
                   {job.work_type && (
                     <span className="px-3 py-1 text-xs font-medium bg-primary-100 text-primary-700 rounded-full">
                       {workTypeLabels[job.work_type] || job.work_type}
@@ -408,7 +432,12 @@ export default async function JobDetailPage({ params }: { params: Promise<{ slug
                       {similarJob.location_city}
                     </div>
 
-                    <div className="mt-3 flex items-center gap-2">
+                    <div className="mt-3 flex flex-wrap items-center gap-2">
+                      {similarJob.categories && (
+                        <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-700 rounded-full">
+                          {similarJob.categories.name}
+                        </span>
+                      )}
                       {similarJob.work_type && (
                         <span className="px-2 py-1 text-xs font-medium bg-primary-100 text-primary-700 rounded-full">
                           {workTypeLabels[similarJob.work_type] || similarJob.work_type}

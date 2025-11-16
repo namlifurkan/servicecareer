@@ -23,6 +23,11 @@ interface Job {
     logo_url: string | null
     city: string | null
   } | null
+  categories: {
+    id: string
+    name: string
+    slug: string
+  } | null
 }
 
 interface JobListingsClientProps {
@@ -282,11 +287,18 @@ export function JobListingsClient({ jobs }: JobListingsClientProps) {
                   )}
                 </div>
 
-                {job.work_type && (
-                  <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-primary-50 text-primary-700 border border-primary-200">
-                    {getWorkTypeLabel(job.work_type)}
-                  </span>
-                )}
+                <div className="flex flex-wrap gap-2">
+                  {job.categories && (
+                    <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200">
+                      {job.categories.name}
+                    </span>
+                  )}
+                  {job.work_type && (
+                    <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-primary-50 text-primary-700 border border-primary-200">
+                      {getWorkTypeLabel(job.work_type)}
+                    </span>
+                  )}
+                </div>
               </div>
             </Link>
           ))}
@@ -333,6 +345,12 @@ export function JobListingsClient({ jobs }: JobListingsClientProps) {
                         <MapPin className="h-4 w-4 text-secondary-500" />
                         <span>{job.location_city}</span>
                       </div>
+
+                      {job.categories && (
+                        <span className="px-2.5 py-1 rounded-md text-xs font-medium bg-green-50 text-green-700 border border-green-200">
+                          {job.categories.name}
+                        </span>
+                      )}
 
                       {job.work_type && (
                         <span className="px-2.5 py-1 rounded-md text-xs font-medium bg-secondary-100 text-secondary-700">

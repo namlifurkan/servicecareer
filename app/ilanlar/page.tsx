@@ -26,12 +26,27 @@ export default async function JobListingsPage() {
         name,
         logo_url,
         city
+      ),
+      categories!jobs_category_id_fkey (
+        id,
+        name,
+        slug
       )
     `)
     .eq('status', 'active')
     .not('published_at', 'is', null)
-    .order('published_at', { ascending: false })
+    .order('published_at', { ascending: false})
     .limit(100)
+
+  // Log error details for debugging
+  if (error) {
+    console.error('Error fetching jobs:', {
+      message: error.message,
+      details: error.details,
+      hint: error.hint,
+      code: error.code
+    })
+  }
 
   return (
     <>

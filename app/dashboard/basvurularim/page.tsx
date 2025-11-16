@@ -103,7 +103,7 @@ export default async function MyApplicationsPage() {
                       <div className="flex items-start justify-between gap-4 mb-2">
                         <div>
                           <Link
-                            href={`/ilanlar/${application.jobs?.slug}`}
+                            href={`/ilan/${application.jobs?.slug}`}
                             className="text-lg font-semibold text-secondary-900 hover:text-primary-600 transition-colors"
                           >
                             {application.jobs?.title}
@@ -157,7 +157,7 @@ export default async function MyApplicationsPage() {
                           CV&apos;mi Görüntüle
                         </a>
                         <Link
-                          href={`/ilanlar/${application.jobs?.slug}`}
+                          href={`/ilan/${application.jobs?.slug}`}
                           className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-primary-600 hover:text-primary-700 hover:bg-primary-50 rounded-lg transition-colors"
                         >
                           İlanı Görüntüle

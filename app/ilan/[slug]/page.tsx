@@ -148,18 +148,32 @@ export default async function JobDetailPage({ params }: { params: Promise<{ slug
   }
 
   // Collect benefits for quick display
-  const benefits: Array<{ icon: any; label: string; value: string }> = []
-  if (job.meal_policy && job.meal_policy !== 'none') {
-    benefits.push({ icon: Utensils, label: 'Yemek', value: MEAL_POLICY_LABELS[job.meal_policy as MealPolicy] })
+  const quickBenefits: Array<{ icon: any; label: string; value: string }> = []
+
+  // Check meal_policy enum OR benefits array
+  if (job.meal_policy && job.meal_policy !== 'none' && job.meal_policy !== 'not_provided') {
+    quickBenefits.push({ icon: Utensils, label: 'Yemek', value: MEAL_POLICY_LABELS[job.meal_policy as MealPolicy] })
+  } else if (job.benefits?.includes('Yemek')) {
+    quickBenefits.push({ icon: Utensils, label: 'Yemek', value: 'Yemek Sağlanır' })
   }
+
+  // Check tip_policy enum OR benefits array
   if (job.tip_policy && job.tip_policy !== 'no_tips') {
-    benefits.push({ icon: Coins, label: 'Bahşiş', value: TIP_POLICY_LABELS[job.tip_policy as TipPolicy] })
+    quickBenefits.push({ icon: Coins, label: 'Bahşiş', value: TIP_POLICY_LABELS[job.tip_policy as TipPolicy] })
+  } else if (job.benefits?.includes('Bahşiş')) {
+    quickBenefits.push({ icon: Coins, label: 'Bahşiş', value: 'Bahşiş Var' })
   }
+
+  // Check uniform_policy enum OR benefits array
   if (job.uniform_policy && job.uniform_policy !== 'none') {
-    benefits.push({ icon: Shirt, label: 'Üniforma', value: UNIFORM_POLICY_LABELS[job.uniform_policy as UniformPolicy] })
+    quickBenefits.push({ icon: Shirt, label: 'Üniforma', value: UNIFORM_POLICY_LABELS[job.uniform_policy as UniformPolicy] })
   }
+
+  // Check has_insurance OR benefits array
   if (job.has_insurance) {
-    benefits.push({ icon: CheckCircle2, label: 'Sigorta', value: 'SGK' })
+    quickBenefits.push({ icon: CheckCircle2, label: 'Sigorta', value: 'SGK' })
+  } else if (job.benefits?.includes('Sağlık Sigortası')) {
+    quickBenefits.push({ icon: CheckCircle2, label: 'Sigorta', value: 'Sağlık Sigortası' })
   }
 
   return (
@@ -277,9 +291,9 @@ export default async function JobDetailPage({ params }: { params: Promise<{ slug
                   )}
 
                   {/* Quick Benefits */}
-                  {benefits.length > 0 && (
+                  {quickBenefits.length > 0 && (
                     <div className="flex flex-wrap gap-2">
-                      {benefits.map((benefit, i) => {
+                      {quickBenefits.map((benefit, i) => {
                         const Icon = benefit.icon
                         return (
                           <span
@@ -365,25 +379,33 @@ export default async function JobDetailPage({ params }: { params: Promise<{ slug
               </div>
 
               {/* Working Conditions */}
-              {benefits.length > 0 && (
+              {quickBenefits.length > 0 && (
                 <div className="bg-white rounded-xl border border-secondary-200 p-5 lg:p-6">
                   <h2 className="font-semibold text-secondary-900 mb-4">Yan Haklar</h2>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {job.meal_policy && job.meal_policy !== 'none' && (
+                    {((job.meal_policy && job.meal_policy !== 'none' && job.meal_policy !== 'not_provided') || job.benefits?.includes('Yemek')) && (
                       <div className="flex items-center gap-3 p-3 bg-orange-50 rounded-lg">
                         <Utensils className="h-5 w-5 text-orange-600" />
                         <div>
                           <p className="text-sm font-medium text-secondary-900">Yemek</p>
-                          <p className="text-xs text-secondary-600">{MEAL_POLICY_LABELS[job.meal_policy as MealPolicy]}</p>
+                          <p className="text-xs text-secondary-600">
+                            {job.meal_policy && job.meal_policy !== 'none' && job.meal_policy !== 'not_provided'
+                              ? MEAL_POLICY_LABELS[job.meal_policy as MealPolicy]
+                              : 'Yemek Sağlanır'}
+                          </p>
                         </div>
                       </div>
                     )}
-                    {job.tip_policy && job.tip_policy !== 'no_tips' && (
+                    {((job.tip_policy && job.tip_policy !== 'no_tips') || job.benefits?.includes('Bahşiş')) && (
                       <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg">
                         <Coins className="h-5 w-5 text-green-600" />
                         <div>
                           <p className="text-sm font-medium text-secondary-900">Bahşiş</p>
-                          <p className="text-xs text-secondary-600">{TIP_POLICY_LABELS[job.tip_policy as TipPolicy]}</p>
+                          <p className="text-xs text-secondary-600">
+                            {job.tip_policy && job.tip_policy !== 'no_tips'
+                              ? TIP_POLICY_LABELS[job.tip_policy as TipPolicy]
+                              : 'Bahşiş Var'}
+                          </p>
                         </div>
                       </div>
                     )}
@@ -396,7 +418,7 @@ export default async function JobDetailPage({ params }: { params: Promise<{ slug
                         </div>
                       </div>
                     )}
-                    {job.has_insurance && (
+                    {(job.has_insurance || job.benefits?.includes('Sağlık Sigortası')) && (
                       <div className="flex items-center gap-3 p-3 bg-purple-50 rounded-lg">
                         <CheckCircle2 className="h-5 w-5 text-purple-600" />
                         <div>

@@ -114,6 +114,7 @@ export default async function CityJobListingsPage({ params }: Props) {
       uniform_policy,
       meal_policy,
       tip_policy,
+      benefits,
       companies (
         name,
         logo_url,

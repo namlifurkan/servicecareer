@@ -340,7 +340,6 @@ export function JobCreateFormEnhanced({
         responsibilities: formData.responsibilities || null,
         requirements: formData.requirements || null,
         work_type: 'full_time', // Default, will be inferred from shift_types
-        experience_level: formData.experience_level || null,
         salary_min: formData.salary_min ? parseInt(formData.salary_min) : null,
         salary_max: formData.salary_max ? parseInt(formData.salary_max) : null,
         salary_currency: 'TRY',

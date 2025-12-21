@@ -95,6 +95,7 @@ export default async function HomePage() {
       show_salary,
       tip_policy,
       meal_policy,
+      benefits,
       companies (
         name,
         logo_url
@@ -487,16 +488,22 @@ export default async function HomePage() {
 
                       {/* Benefits Row */}
                       <div className="flex items-center gap-3 text-xs text-secondary-500 mb-3">
-                        {job.meal_policy && job.meal_policy !== 'none' && (
+                        {((job.meal_policy && job.meal_policy !== 'none' && job.meal_policy !== 'not_provided') || job.benefits?.includes('Yemek')) && (
                           <span className="flex items-center gap-1">
                             <Utensils className="h-3 w-3 text-orange-500" />
                             Yemek
                           </span>
                         )}
-                        {job.tip_policy && job.tip_policy !== 'no_tips' && (
+                        {((job.tip_policy && job.tip_policy !== 'no_tips') || job.benefits?.includes('Bahşiş')) && (
                           <span className="flex items-center gap-1">
                             <DollarSign className="h-3 w-3 text-green-500" />
                             Bahşiş
+                          </span>
+                        )}
+                        {job.benefits?.includes('Sağlık Sigortası') && (
+                          <span className="flex items-center gap-1">
+                            <CheckCircle className="h-3 w-3 text-purple-500" />
+                            Sigorta
                           </span>
                         )}
                       </div>

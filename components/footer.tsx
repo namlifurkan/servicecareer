@@ -3,7 +3,6 @@ import Link from 'next/link'
 export function Footer() {
   const currentYear = new Date().getFullYear()
 
-  // SEO-optimized city links
   const popularCities = [
     { name: 'İstanbul', slug: 'istanbul' },
     { name: 'Ankara', slug: 'ankara' },
@@ -11,82 +10,99 @@ export function Footer() {
     { name: 'Bursa', slug: 'bursa' },
     { name: 'Antalya', slug: 'antalya' },
     { name: 'Adana', slug: 'adana' },
-    { name: 'Gaziantep', slug: 'gaziantep' },
-    { name: 'Konya', slug: 'konya' },
-    { name: 'Kayseri', slug: 'kayseri' },
-    { name: 'Mersin', slug: 'mersin' },
-    { name: 'Eskişehir', slug: 'eskisehir' },
-    { name: 'Diyarbakır', slug: 'diyarbakir' },
   ]
 
-  const footerLinks = {
-    forEmployers: [
-      { label: 'İşveren Girişi', href: '/isveren/giris' },
-      { label: 'İşveren Kayıt', href: '/isveren/kayit' },
-    ],
-    forCandidates: [
-      { label: 'Giriş Yap', href: '/giris' },
-      { label: 'Kayıt Ol', href: '/kayit' },
-      { label: 'İş İlanları', href: '/ilanlar' },
-    ],
-  }
+  const popularPositions = [
+    { name: 'Garson', slug: 'waiter' },
+    { name: 'Aşçı', slug: 'line_cook' },
+    { name: 'Barista', slug: 'barista' },
+    { name: 'Barmen', slug: 'bartender' },
+    { name: 'Kurye', slug: 'delivery_driver' },
+    { name: 'Komi', slug: 'busser' },
+  ]
 
   return (
-    <footer className="bg-secondary-50 border-t border-secondary-200 mt-auto">
-      {/* SEO-Optimized City Links Section */}
-      <div className="border-b border-secondary-200">
-        <div className="container mx-auto px-6 py-8">
-          <h3 className="text-base font-semibold text-secondary-900 mb-4">
-            Şehirlere Göre İş İlanları
-          </h3>
-          <nav aria-label="Şehir bazlı iş ilanları">
-            <ul className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
-              {popularCities.map((city) => (
-                <li key={city.slug}>
-                  <Link
-                    href={`/ilanlar/${city.slug}`}
-                    className="text-sm text-secondary-600 hover:text-secondary-900 hover:underline transition-colors"
-                  >
-                    {city.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </nav>
-        </div>
-      </div>
+    <footer className="bg-secondary-900 text-secondary-300 mt-auto">
+      {/* Main Footer */}
+      <div className="container mx-auto px-4 py-10 lg:py-12">
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8">
+          {/* Brand */}
+          <div className="col-span-2 md:col-span-4 lg:col-span-1 mb-4 lg:mb-0">
+            <Link href="/" className="inline-block mb-4">
+              <span className="text-xl font-bold text-white">ServiceCareer</span>
+            </Link>
+            <p className="text-sm text-secondary-400 leading-relaxed">
+              Restoran, kafe ve otel sektöründe iş arayanlar ile işverenleri buluşturan platform.
+            </p>
+          </div>
 
-      {/* Main Footer Content */}
-      <div className="container mx-auto px-6 py-12">
-        <div className="grid grid-cols-2 md:grid-cols-2 gap-8 max-w-2xl mx-auto">
-          {/* Employer Links */}
+          {/* İş Arayanlar */}
           <div>
-            <h4 className="font-semibold text-secondary-900 mb-4 text-sm">İşverenler İçin</h4>
-            <ul className="space-y-3">
-              {footerLinks.forEmployers.map((link) => (
-                <li key={link.href}>
+            <h4 className="text-sm font-semibold text-white mb-4">İş Arayanlar</h4>
+            <ul className="space-y-2.5">
+              <li>
+                <Link href="/ilanlar" className="text-sm hover:text-white transition-colors">
+                  İş İlanları
+                </Link>
+              </li>
+              <li>
+                <Link href="/giris" className="text-sm hover:text-white transition-colors">
+                  Giriş Yap
+                </Link>
+              </li>
+              <li>
+                <Link href="/kayit" className="text-sm hover:text-white transition-colors">
+                  Kayıt Ol
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* İşverenler */}
+          <div>
+            <h4 className="text-sm font-semibold text-white mb-4">İşverenler</h4>
+            <ul className="space-y-2.5">
+              <li>
+                <Link href="/isveren/giris" className="text-sm hover:text-white transition-colors">
+                  İşveren Girişi
+                </Link>
+              </li>
+              <li>
+                <Link href="/isveren/kayit" className="text-sm hover:text-white transition-colors">
+                  Ücretsiz İlan Ver
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Popüler Pozisyonlar */}
+          <div>
+            <h4 className="text-sm font-semibold text-white mb-4">Pozisyonlar</h4>
+            <ul className="space-y-2.5">
+              {popularPositions.map((pos) => (
+                <li key={pos.slug}>
                   <Link
-                    href={link.href}
-                    className="text-sm text-secondary-600 hover:text-secondary-900 hover:underline transition-colors"
+                    href={`/ilanlar?position=${pos.slug}`}
+                    className="text-sm hover:text-white transition-colors"
                   >
-                    {link.label}
+                    {pos.name}
                   </Link>
                 </li>
               ))}
             </ul>
           </div>
 
-          {/* Candidate Links */}
+          {/* Şehirler */}
           <div>
-            <h4 className="font-semibold text-secondary-900 mb-4 text-sm">İş Arayanlar İçin</h4>
-            <ul className="space-y-3">
-              {footerLinks.forCandidates.map((link) => (
-                <li key={link.href}>
+            <h4 className="text-sm font-semibold text-white mb-4">Şehirler</h4>
+            <ul className="space-y-2.5">
+              {popularCities.map((city) => (
+                <li key={city.slug}>
                   <Link
-                    href={link.href}
-                    className="text-sm text-secondary-600 hover:text-secondary-900 hover:underline transition-colors"
+                    href={`/ilanlar/${city.slug}`}
+                    className="text-sm hover:text-white transition-colors"
                   >
-                    {link.label}
+                    {city.name}
                   </Link>
                 </li>
               ))}
@@ -96,15 +112,21 @@ export function Footer() {
       </div>
 
       {/* Bottom Bar */}
-      <div className="border-t border-secondary-200 bg-white">
-        <div className="container mx-auto px-6 py-6">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-secondary-600">
-            <p>
-              © {currentYear} ServiceCareer. Tüm hakları saklıdır.
-            </p>
-            <p>
-              Türkiye&apos;nin güvenilir iş ilanları platformu
-            </p>
+      <div className="border-t border-secondary-800">
+        <div className="container mx-auto px-4 py-5">
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-3 text-sm text-secondary-500">
+            <p>© {currentYear} ServiceCareer</p>
+            <div className="flex items-center gap-4">
+              <Link href="/gizlilik" className="hover:text-secondary-300 transition-colors">
+                Gizlilik
+              </Link>
+              <Link href="/kullanim-kosullari" className="hover:text-secondary-300 transition-colors">
+                Kullanım Koşulları
+              </Link>
+              <Link href="/iletisim" className="hover:text-secondary-300 transition-colors">
+                İletişim
+              </Link>
+            </div>
           </div>
         </div>
       </div>

@@ -9,7 +9,9 @@ import {
   TrendingUp,
   Eye,
   MapPin,
-  Clock
+  Clock,
+  Award,
+  Globe
 } from 'lucide-react'
 
 export default async function CandidateDashboardPage() {
@@ -75,15 +77,29 @@ export default async function CandidateDashboardPage() {
     .order('created_at', { ascending: false })
     .limit(5)
 
-  // Calculate profile completion
+  // Get certificates count
+  const { count: certificatesCount } = await supabase
+    .from('candidate_certificates')
+    .select('*', { count: 'exact', head: true })
+    .eq('candidate_id', user.id)
+
+  // Get languages count
+  const { count: languagesCount } = await supabase
+    .from('candidate_languages')
+    .select('*', { count: 'exact', head: true })
+    .eq('candidate_id', user.id)
+
+  // Calculate profile completion with service industry focus
   const calculateCompletion = () => {
     let score = 0
-    if (candidateProfile?.bio) score += 15
-    if (candidateProfile?.title) score += 10
-    if (candidateProfile?.city) score += 10
-    if (candidateProfile?.skills && candidateProfile.skills.length > 0) score += 15
-    if (candidateProfile?.resume_url) score += 20
+    if (candidateProfile?.bio) score += 10
+    if (candidateProfile?.title) score += 5
+    if (candidateProfile?.city) score += 5
+    if (candidateProfile?.preferred_positions?.length > 0) score += 15
+    if (candidateProfile?.experience_level) score += 10
     if (experiencesCount && experiencesCount > 0) score += 20
+    if (certificatesCount && certificatesCount > 0) score += 15
+    if (languagesCount && languagesCount > 0) score += 10
     if (educationsCount && educationsCount > 0) score += 10
     return score
   }
@@ -113,11 +129,11 @@ export default async function CandidateDashboardPage() {
       href: '/dashboard/profil#deneyimler',
     },
     {
-      name: 'Eğitim',
-      value: educationsCount || 0,
-      icon: GraduationCap,
+      name: 'Sertifikalar',
+      value: certificatesCount || 0,
+      icon: Award,
       color: 'secondary',
-      href: '/dashboard/profil#egitim',
+      href: '/dashboard/profil#sertifikalar',
     },
   ]
 

@@ -2,8 +2,9 @@ import { Metadata } from 'next'
 import Link from 'next/link'
 import { Header } from '@/components/header'
 import { Footer } from '@/components/footer'
-import { JobListingsClient } from '@/components/job-listings-client'
+import { JobListingsEnhanced } from '@/components/job-listings-enhanced'
 import { createClient } from '@/lib/supabase/server'
+import { MapPin, AlertCircle, Briefcase } from 'lucide-react'
 
 // Popüler şehirler için statik sayfa oluşturma - Footer'daki tüm şehirler
 export async function generateStaticParams() {
@@ -81,11 +82,38 @@ export default async function CityJobListingsPage({ params }: Props) {
     .eq('is_active', true)
     .order('display_order', { ascending: true })
 
-  // Fetch jobs for the specific city
+  // Acil ilan sayısı bu şehir için
+  const { count: urgentCount } = await supabase
+    .from('jobs')
+    .select('id', { count: 'exact', head: true })
+    .eq('status', 'active')
+    .eq('is_urgent', true)
+    .ilike('location_city', `%${cityName}%`)
+
+  // Fetch jobs for the specific city with service industry fields
   const { data: jobs, error } = await supabase
     .from('jobs')
     .select(`
-      *,
+      id,
+      title,
+      slug,
+      location_city,
+      work_type,
+      experience_level,
+      salary_min,
+      salary_max,
+      salary_currency,
+      show_salary,
+      published_at,
+      position_type,
+      venue_type,
+      shift_types,
+      cuisine_types,
+      service_experience_required,
+      is_urgent,
+      uniform_policy,
+      meal_policy,
+      tip_policy,
       companies (
         name,
         logo_url,
@@ -100,7 +128,7 @@ export default async function CityJobListingsPage({ params }: Props) {
     .eq('status', 'active')
     .ilike('location_city', `%${cityName}%`)
     .not('published_at', 'is', null)
-    .order('is_featured', { ascending: false })
+    .order('is_urgent', { ascending: false })
     .order('published_at', { ascending: false })
     .limit(50)
 
@@ -131,13 +159,39 @@ export default async function CityJobListingsPage({ params }: Props) {
 
       <div className="container mx-auto px-4 md:px-6 py-8">
         {/* SEO-Optimized Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl md:text-4xl font-semibold text-secondary-900 mb-2">
-            {cityName} İş İlanları
-          </h1>
-          <p className="text-base md:text-lg text-secondary-600">
-            {jobs?.length || 0} aktif ilan
-          </p>
+        <div className="bg-white rounded-xl border border-secondary-200 p-6 mb-8">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <div className="p-2 bg-primary-100 rounded-lg">
+                  <MapPin className="h-5 w-5 text-primary-600" />
+                </div>
+                <h1 className="text-2xl md:text-3xl font-bold text-secondary-900">
+                  {cityName} İş İlanları
+                </h1>
+              </div>
+              <p className="text-secondary-600">
+                {cityName} ilinde hizmet sektöründe {jobs?.length || 0} aktif iş ilanı
+              </p>
+            </div>
+
+            {/* Stats */}
+            <div className="flex items-center gap-4">
+              <div className="text-center px-4 py-2 bg-primary-50 rounded-lg">
+                <p className="text-xl font-bold text-primary-600">{jobs?.length || 0}</p>
+                <p className="text-xs text-primary-600">İlan</p>
+              </div>
+              {(urgentCount || 0) > 0 && (
+                <Link
+                  href={`/ilanlar/${city}?urgent=true`}
+                  className="text-center px-4 py-2 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
+                >
+                  <p className="text-xl font-bold text-red-600">{urgentCount}</p>
+                  <p className="text-xs text-red-600">Acil</p>
+                </Link>
+              )}
+            </div>
+          </div>
 
           {/* Structured Data for SEO */}
           <script
@@ -181,7 +235,7 @@ export default async function CityJobListingsPage({ params }: Props) {
             <p className="text-accent-600">İlanlar yüklenirken bir hata oluştu.</p>
           </div>
         ) : jobs && jobs.length > 0 ? (
-          <JobListingsClient jobs={jobs} categories={categories || []} />
+          <JobListingsEnhanced jobs={jobs} categories={categories || []} initialCity={cityName} />
         ) : (
           <div className="bg-white rounded-xl border border-secondary-200 p-12 text-center">
             <div className="max-w-md mx-auto">

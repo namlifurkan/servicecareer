@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { JobCreateForm } from '@/components/employer/job-create-form'
+import { JobCreateFormEnhanced } from '@/components/employer/job-create-form-enhanced'
 
 export default async function CreateJobPage() {
   const supabase = await createClient()
@@ -41,12 +41,12 @@ export default async function CreateJobPage() {
           Yeni İlan Oluştur
         </h1>
         <p className="text-secondary-600 mt-1">
-          İş ilanınızı 4 adımda oluşturun ve yayınlayın
+          Hizmet sektörüne özel ilan oluşturun - 6 adımda tamamlayın
         </p>
       </div>
 
-      {/* Job Create Form */}
-      <JobCreateForm
+      {/* Job Create Form - Enhanced for Service Industry */}
+      <JobCreateFormEnhanced
         companyId={company.id}
         categories={categories || []}
         cities={cities || []}

@@ -2,17 +2,27 @@ import { Metadata } from 'next'
 import Link from 'next/link'
 import { Header } from '@/components/header'
 import { Footer } from '@/components/footer'
-import { JobListingsClient } from '@/components/job-listings-client'
+import { JobListingsEnhanced } from '@/components/job-listings-enhanced'
 import { createClient } from '@/lib/supabase/server'
 
 export const metadata: Metadata = {
-  title: 'İş İlanları',
-  description: 'Hizmet sektöründe güncel iş ilanları. Binlerce iş fırsatı arasından size en uygun pozisyonu bulun.',
+  title: 'İş İlanları - Hizmet Sektörü | ServiceCareer',
+  description: 'Restoran, kafe, bar ve otel sektöründe güncel iş ilanları. Garson, aşçı, barista, kurye ve daha fazlası.',
   openGraph: {
     title: 'İş İlanları | ServiceCareer',
-    description: 'Hizmet sektöründe güncel iş ilanları',
+    description: 'Hizmet sektöründe güncel iş ilanları - Restoran, kafe, bar pozisyonları',
   },
 }
+
+// Hızlı filtre kısayolları
+const quickFilters = [
+  { key: 'waiter', label: 'Garson' },
+  { key: 'line_cook', label: 'Aşçı' },
+  { key: 'barista', label: 'Barista' },
+  { key: 'bartender', label: 'Barmen' },
+  { key: 'delivery_driver', label: 'Kurye' },
+  { key: 'host_hostess', label: 'Hostes' },
+]
 
 export default async function JobListingsPage() {
   const supabase = await createClient()
@@ -24,11 +34,46 @@ export default async function JobListingsPage() {
     .eq('is_active', true)
     .order('display_order', { ascending: true })
 
-  // SEO-friendly data fetching with proper error handling
+  // Acil ilan sayısı
+  const { count: urgentCount } = await supabase
+    .from('jobs')
+    .select('id', { count: 'exact', head: true })
+    .eq('status', 'active')
+    .eq('is_urgent', true)
+
+  // Bugün eklenen ilan sayısı
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const { count: todayCount } = await supabase
+    .from('jobs')
+    .select('id', { count: 'exact', head: true })
+    .eq('status', 'active')
+    .gte('published_at', today.toISOString())
+
+  // SEO-friendly data fetching with service industry fields
   const { data: jobs, error } = await supabase
     .from('jobs')
     .select(`
-      *,
+      id,
+      title,
+      slug,
+      location_city,
+      work_type,
+      experience_level,
+      salary_min,
+      salary_max,
+      salary_currency,
+      show_salary,
+      published_at,
+      position_type,
+      venue_type,
+      shift_types,
+      cuisine_types,
+      service_experience_required,
+      is_urgent,
+      uniform_policy,
+      meal_policy,
+      tip_policy,
       companies (
         name,
         logo_url,
@@ -42,7 +87,8 @@ export default async function JobListingsPage() {
     `)
     .eq('status', 'active')
     .not('published_at', 'is', null)
-    .order('published_at', { ascending: false})
+    .order('is_urgent', { ascending: false })
+    .order('published_at', { ascending: false })
     .limit(100)
 
   // Log error details for debugging
@@ -59,28 +105,85 @@ export default async function JobListingsPage() {
     <>
       <Header />
       <main className="min-h-screen bg-secondary-50">
-        <div className="container mx-auto px-4 md:px-6 py-8">
-          {/* SEO-Friendly Header */}
-          <div className="mb-8">
-            <h1 className="text-3xl md:text-4xl font-semibold text-secondary-900 mb-2">
-              Tüm İş İlanları
-            </h1>
-            <p className="text-base md:text-lg text-secondary-600">
-              {jobs?.length || 0} aktif ilan
-            </p>
-          </div>
+        {/* Hero Header */}
+        <div className="bg-white border-b border-secondary-200">
+          <div className="container mx-auto px-4 md:px-6 py-8 md:py-12">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+              <div>
+                <h1 className="text-3xl md:text-4xl font-bold text-secondary-900 mb-2">
+                  Hizmet Sektörü İş İlanları
+                </h1>
+                <p className="text-base md:text-lg text-secondary-600">
+                  Restoran, kafe, bar ve otel sektöründe {jobs?.length || 0} aktif ilan
+                </p>
+              </div>
 
-          {/* Employer CTA */}
-          <div className="bg-primary-50 border border-primary-200 rounded-2xl p-8 mb-8 text-center">
-            <h3 className="text-xl md:text-2xl font-semibold text-secondary-900 mb-3">
-              İlanınızı Ücretsiz Yayınlayın
-            </h3>
-            <p className="text-secondary-600 mb-6">
-              İlk 3 ilan ücretsiz! Binlerce adaya hemen ulaşın.
-            </p>
+              {/* Quick Stats */}
+              <div className="flex items-center gap-4 md:gap-6">
+                <div className="text-center px-4 py-2 bg-secondary-50 rounded-lg">
+                  <p className="text-2xl font-bold text-primary-600">{jobs?.length || 0}</p>
+                  <p className="text-xs text-secondary-500">Toplam İlan</p>
+                </div>
+                {(urgentCount || 0) > 0 && (
+                  <div className="text-center px-4 py-2 bg-red-50 rounded-lg">
+                    <p className="text-2xl font-bold text-red-600">{urgentCount}</p>
+                    <p className="text-xs text-red-600">Acil İlan</p>
+                  </div>
+                )}
+                {(todayCount || 0) > 0 && (
+                  <div className="text-center px-4 py-2 bg-green-50 rounded-lg">
+                    <p className="text-2xl font-bold text-green-600">{todayCount}</p>
+                    <p className="text-xs text-green-600">Bugün Eklenen</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Quick Position Filters */}
+            <div className="mt-6 flex flex-wrap items-center gap-x-1 gap-y-2">
+              <span className="text-sm text-secondary-500 mr-1">Popüler:</span>
+              {quickFilters.map((filter, index) => (
+                <span key={filter.key} className="inline-flex items-center">
+                  <Link
+                    href={`/ilanlar?position=${filter.key}`}
+                    className="text-sm text-secondary-700 hover:text-primary-600 underline-offset-2 hover:underline"
+                  >
+                    {filter.label}
+                  </Link>
+                  {index < quickFilters.length - 1 && (
+                    <span className="text-secondary-300 mx-2">·</span>
+                  )}
+                </span>
+              ))}
+              {(urgentCount || 0) > 0 && (
+                <>
+                  <span className="text-secondary-300 mx-2">·</span>
+                  <Link
+                    href="/ilanlar?urgent=true"
+                    className="text-sm text-red-600 hover:text-red-700 underline-offset-2 hover:underline font-medium"
+                  >
+                    Acil İlanlar ({urgentCount})
+                  </Link>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div className="container mx-auto px-4 md:px-6 py-8">
+          {/* Employer CTA - More Compact */}
+          <div className="bg-gradient-to-r from-primary-50 to-primary-100 border border-primary-200 rounded-xl p-6 mb-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="text-center sm:text-left">
+              <h3 className="text-lg font-semibold text-secondary-900 mb-1">
+                İşveren misiniz? İlanınızı Ücretsiz Yayınlayın
+              </h3>
+              <p className="text-sm text-secondary-600">
+                İlk 3 ilan ücretsiz! Binlerce adaya hemen ulaşın.
+              </p>
+            </div>
             <Link
               href="/isveren/kayit"
-              className="inline-flex items-center px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-lg transition-colors"
+              className="inline-flex items-center px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-lg transition-colors whitespace-nowrap"
             >
               Hemen Başlayın
             </Link>
@@ -92,7 +195,7 @@ export default async function JobListingsPage() {
               <p className="text-accent-600">İlanlar yüklenirken bir hata oluştu.</p>
             </div>
           ) : jobs && jobs.length > 0 ? (
-            <JobListingsClient jobs={jobs} categories={categories || []} />
+            <JobListingsEnhanced jobs={jobs} categories={categories || []} />
           ) : (
             <div className="text-center py-20 bg-white rounded-2xl border border-secondary-200">
               <p className="text-lg text-secondary-600">Henüz ilan bulunmamaktadır.</p>

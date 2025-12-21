@@ -11,11 +11,11 @@ import {
 interface Certificate {
   id: string
   certificate_type: CertificateType
-  certificate_name: string | null
+  certificate_name: string
   issuing_organization: string | null
   issue_date: string | null
   expiry_date: string | null
-  certificate_url: string | null
+  verification_url: string | null
   is_verified: boolean
 }
 
@@ -35,7 +35,7 @@ export function CertificatesSection({ candidateId, certificates: initialCertific
     issuing_organization: '',
     issue_date: '',
     expiry_date: '',
-    certificate_url: '',
+    verification_url: '',
   })
 
   const resetForm = () => {
@@ -45,7 +45,7 @@ export function CertificatesSection({ candidateId, certificates: initialCertific
       issuing_organization: '',
       issue_date: '',
       expiry_date: '',
-      certificate_url: '',
+      verification_url: '',
     })
     setEditingId(null)
   }
@@ -62,7 +62,7 @@ export function CertificatesSection({ candidateId, certificates: initialCertific
       issuing_organization: cert.issuing_organization || '',
       issue_date: cert.issue_date || '',
       expiry_date: cert.expiry_date || '',
-      certificate_url: cert.certificate_url || '',
+      verification_url: cert.verification_url || '',
     })
     setEditingId(cert.id)
     setIsModalOpen(true)
@@ -83,11 +83,11 @@ export function CertificatesSection({ candidateId, certificates: initialCertific
           .from('candidate_certificates')
           .update({
             certificate_type: formData.certificate_type,
-            certificate_name: formData.certificate_name || null,
+            certificate_name: formData.certificate_name || CERTIFICATE_TYPE_LABELS[formData.certificate_type as CertificateType] || formData.certificate_type,
             issuing_organization: formData.issuing_organization || null,
             issue_date: formData.issue_date || null,
             expiry_date: formData.expiry_date || null,
-            certificate_url: formData.certificate_url || null,
+            verification_url: formData.verification_url || null,
           })
           .eq('id', editingId)
 
@@ -98,11 +98,11 @@ export function CertificatesSection({ candidateId, certificates: initialCertific
             ? {
                 ...cert,
                 certificate_type: formData.certificate_type as CertificateType,
-                certificate_name: formData.certificate_name || null,
+                certificate_name: formData.certificate_name || CERTIFICATE_TYPE_LABELS[formData.certificate_type as CertificateType] || formData.certificate_type,
                 issuing_organization: formData.issuing_organization || null,
                 issue_date: formData.issue_date || null,
                 expiry_date: formData.expiry_date || null,
-                certificate_url: formData.certificate_url || null,
+                verification_url: formData.verification_url || null,
               }
             : cert
         ))
@@ -113,11 +113,11 @@ export function CertificatesSection({ candidateId, certificates: initialCertific
           .insert({
             candidate_id: candidateId,
             certificate_type: formData.certificate_type,
-            certificate_name: formData.certificate_name || null,
+            certificate_name: formData.certificate_name || CERTIFICATE_TYPE_LABELS[formData.certificate_type as CertificateType] || formData.certificate_type,
             issuing_organization: formData.issuing_organization || null,
             issue_date: formData.issue_date || null,
             expiry_date: formData.expiry_date || null,
-            certificate_url: formData.certificate_url || null,
+            verification_url: formData.verification_url || null,
           })
           .select()
           .single()
@@ -447,8 +447,8 @@ export function CertificatesSection({ candidateId, certificates: initialCertific
                 </label>
                 <input
                   type="url"
-                  value={formData.certificate_url}
-                  onChange={(e) => setFormData({ ...formData, certificate_url: e.target.value })}
+                  value={formData.verification_url}
+                  onChange={(e) => setFormData({ ...formData, verification_url: e.target.value })}
                   className="w-full px-4 py-2 bg-white border border-secondary-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   placeholder="https://..."
                 />
@@ -554,9 +554,9 @@ function CertificateCard({
                 Süresi Dolmuş
               </span>
             )}
-            {certificate.certificate_url && (
+            {certificate.verification_url && (
               <a
-                href={certificate.certificate_url}
+                href={certificate.verification_url}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1 text-xs text-primary-600 hover:text-primary-700"

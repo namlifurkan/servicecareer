@@ -12,9 +12,9 @@ import {
 
 interface Language {
   id: string
-  language_code: LanguageCode
-  proficiency_level: LanguageLevel
-  is_native: boolean
+  language_code: string
+  language_name: string
+  speaking_level: string
 }
 
 interface LanguagesSectionProps {
@@ -28,16 +28,16 @@ export function LanguagesSection({ candidateId, languages: initialLanguages }: L
   const [editingId, setEditingId] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [formData, setFormData] = useState({
-    language_code: '' as LanguageCode | '',
-    proficiency_level: '' as LanguageLevel | '',
-    is_native: false,
+    language_code: '',
+    language_name: '',
+    speaking_level: '',
   })
 
   const resetForm = () => {
     setFormData({
       language_code: '',
-      proficiency_level: '',
-      is_native: false,
+      language_name: '',
+      speaking_level: '',
     })
     setEditingId(null)
   }
@@ -50,8 +50,8 @@ export function LanguagesSection({ candidateId, languages: initialLanguages }: L
   const handleEdit = (lang: Language) => {
     setFormData({
       language_code: lang.language_code,
-      proficiency_level: lang.proficiency_level,
-      is_native: lang.is_native,
+      language_name: lang.language_name,
+      speaking_level: lang.speaking_level,
     })
     setEditingId(lang.id)
     setIsModalOpen(true)
@@ -59,11 +59,12 @@ export function LanguagesSection({ candidateId, languages: initialLanguages }: L
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!formData.language_code || !formData.proficiency_level) return
+    if (!formData.language_code || !formData.speaking_level) return
 
     setIsLoading(true)
 
     const supabase = createClient()
+    const languageName = LANGUAGE_LABELS[formData.language_code as LanguageCode] || formData.language_code
 
     try {
       if (editingId) {
@@ -72,8 +73,8 @@ export function LanguagesSection({ candidateId, languages: initialLanguages }: L
           .from('candidate_languages')
           .update({
             language_code: formData.language_code,
-            proficiency_level: formData.is_native ? 'native' : formData.proficiency_level,
-            is_native: formData.is_native,
+            language_name: languageName,
+            speaking_level: formData.speaking_level,
           })
           .eq('id', editingId)
 
@@ -83,9 +84,9 @@ export function LanguagesSection({ candidateId, languages: initialLanguages }: L
           lang.id === editingId
             ? {
                 ...lang,
-                language_code: formData.language_code as LanguageCode,
-                proficiency_level: (formData.is_native ? 'native' : formData.proficiency_level) as LanguageLevel,
-                is_native: formData.is_native,
+                language_code: formData.language_code,
+                language_name: languageName,
+                speaking_level: formData.speaking_level,
               }
             : lang
         ))
@@ -104,8 +105,8 @@ export function LanguagesSection({ candidateId, languages: initialLanguages }: L
           .insert({
             candidate_id: candidateId,
             language_code: formData.language_code,
-            proficiency_level: formData.is_native ? 'native' : formData.proficiency_level,
-            is_native: formData.is_native,
+            language_name: languageName,
+            speaking_level: formData.speaking_level,
           })
           .select()
           .single()
@@ -145,17 +146,16 @@ export function LanguagesSection({ candidateId, languages: initialLanguages }: L
   }
 
   // Get proficiency color
-  const getProficiencyColor = (level: LanguageLevel, isNative: boolean) => {
-    if (isNative || level === 'native') return 'bg-green-100 text-green-700'
+  const getProficiencyColor = (level: string) => {
+    if (level === 'native') return 'bg-green-100 text-green-700'
     if (level === 'C1' || level === 'C2') return 'bg-blue-100 text-blue-700'
     if (level === 'B1' || level === 'B2') return 'bg-yellow-100 text-yellow-700'
     return 'bg-secondary-100 text-secondary-700'
   }
 
   // Get progress percentage
-  const getProgressPercentage = (level: LanguageLevel, isNative: boolean) => {
-    if (isNative || level === 'native') return 100
-    const levels: Record<LanguageLevel, number> = {
+  const getProgressPercentage = (level: string) => {
+    const levels: Record<string, number> = {
       'A1': 15,
       'A2': 30,
       'B1': 50,
@@ -199,10 +199,10 @@ export function LanguagesSection({ candidateId, languages: initialLanguages }: L
                       <Globe className="h-5 w-5 text-primary-500" />
                       <div>
                         <h4 className="font-medium text-secondary-900">
-                          {LANGUAGE_LABELS[lang.language_code]}
+                          {lang.language_name || LANGUAGE_LABELS[lang.language_code as LanguageCode] || lang.language_code}
                         </h4>
-                        <span className={`inline-block mt-1 px-2 py-0.5 text-xs font-medium rounded-full ${getProficiencyColor(lang.proficiency_level, lang.is_native)}`}>
-                          {lang.is_native ? 'Ana Dil' : LANGUAGE_LEVEL_LABELS[lang.proficiency_level]}
+                        <span className={`inline-block mt-1 px-2 py-0.5 text-xs font-medium rounded-full ${getProficiencyColor(lang.speaking_level)}`}>
+                          {lang.speaking_level === 'native' ? 'Ana Dil' : LANGUAGE_LEVEL_LABELS[lang.speaking_level as LanguageLevel] || lang.speaking_level}
                         </span>
                       </div>
                     </div>
@@ -227,11 +227,11 @@ export function LanguagesSection({ candidateId, languages: initialLanguages }: L
                   <div className="h-2 bg-secondary-100 rounded-full overflow-hidden">
                     <div
                       className={`h-full transition-all ${
-                        lang.is_native || lang.proficiency_level === 'native'
+                        lang.speaking_level === 'native'
                           ? 'bg-green-500'
                           : 'bg-primary-500'
                       }`}
-                      style={{ width: `${getProgressPercentage(lang.proficiency_level, lang.is_native)}%` }}
+                      style={{ width: `${getProgressPercentage(lang.speaking_level)}%` }}
                     />
                   </div>
                 </div>
@@ -278,44 +278,27 @@ export function LanguagesSection({ candidateId, languages: initialLanguages }: L
               </div>
 
               <div>
-                <label className="flex items-center gap-3 mb-4">
-                  <input
-                    type="checkbox"
-                    checked={formData.is_native}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      is_native: e.target.checked,
-                      proficiency_level: e.target.checked ? 'native' : formData.proficiency_level
-                    })}
-                    className="rounded border-secondary-300 text-primary-600 focus:ring-primary-500"
-                  />
-                  <span className="text-sm text-secondary-900">Bu benim ana dilim</span>
+                <label className="block text-sm font-medium text-secondary-900 mb-2">
+                  Seviye *
                 </label>
-
-                {!formData.is_native && (
-                  <>
-                    <label className="block text-sm font-medium text-secondary-900 mb-2">
-                      Seviye *
-                    </label>
-                    <select
-                      value={formData.proficiency_level}
-                      onChange={(e) => setFormData({ ...formData, proficiency_level: e.target.value as LanguageLevel })}
-                      className="w-full px-4 py-2 bg-white border border-secondary-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                      required={!formData.is_native}
-                    >
-                      <option value="">Seçiniz...</option>
-                      <option value="A1">A1 - Başlangıç</option>
-                      <option value="A2">A2 - Temel</option>
-                      <option value="B1">B1 - Orta Altı</option>
-                      <option value="B2">B2 - Orta</option>
-                      <option value="C1">C1 - İleri</option>
-                      <option value="C2">C2 - Uzman</option>
-                    </select>
-                    <p className="text-xs text-secondary-500 mt-2">
-                      Avrupa Dil Portfolyosu (CEFR) seviyesine göre değerlendirin
-                    </p>
-                  </>
-                )}
+                <select
+                  value={formData.speaking_level}
+                  onChange={(e) => setFormData({ ...formData, speaking_level: e.target.value })}
+                  className="w-full px-4 py-2 bg-white border border-secondary-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  required
+                >
+                  <option value="">Seçiniz...</option>
+                  <option value="native">Ana Dil</option>
+                  <option value="C2">C2 - Uzman</option>
+                  <option value="C1">C1 - İleri</option>
+                  <option value="B2">B2 - Orta</option>
+                  <option value="B1">B1 - Orta Altı</option>
+                  <option value="A2">A2 - Temel</option>
+                  <option value="A1">A1 - Başlangıç</option>
+                </select>
+                <p className="text-xs text-secondary-500 mt-2">
+                  Avrupa Dil Portfolyosu (CEFR) seviyesine göre değerlendirin
+                </p>
               </div>
 
               <div className="flex justify-end gap-3 pt-4">

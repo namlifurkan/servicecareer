@@ -153,6 +153,12 @@ export type Database = {
           featured_until: string | null
           published_at: string | null
           expires_at: string | null
+          certifications: string[]
+          vehicle_required: boolean
+          vehicle_types: string[]
+          languages: string[]
+          shift_types: string[]
+          category_attributes: Json
           created_at: string
           updated_at: string
         }
@@ -184,6 +190,12 @@ export type Database = {
           featured_until?: string | null
           published_at?: string | null
           expires_at?: string | null
+          certifications?: string[]
+          vehicle_required?: boolean
+          vehicle_types?: string[]
+          languages?: string[]
+          shift_types?: string[]
+          category_attributes?: Json
           created_at?: string
           updated_at?: string
         }
@@ -215,6 +227,12 @@ export type Database = {
           featured_until?: string | null
           published_at?: string | null
           expires_at?: string | null
+          certifications?: string[]
+          vehicle_required?: boolean
+          vehicle_types?: string[]
+          languages?: string[]
+          shift_types?: string[]
+          category_attributes?: Json
           created_at?: string
           updated_at?: string
         }

@@ -17,6 +17,13 @@ export const metadata: Metadata = {
 export default async function JobListingsPage() {
   const supabase = await createClient()
 
+  // Fetch all categories for filter
+  const { data: categories } = await supabase
+    .from('categories')
+    .select('id, name, slug')
+    .eq('is_active', true)
+    .order('display_order', { ascending: true })
+
   // SEO-friendly data fetching with proper error handling
   const { data: jobs, error } = await supabase
     .from('jobs')
@@ -85,7 +92,7 @@ export default async function JobListingsPage() {
               <p className="text-accent-600">İlanlar yüklenirken bir hata oluştu.</p>
             </div>
           ) : jobs && jobs.length > 0 ? (
-            <JobListingsClient jobs={jobs} />
+            <JobListingsClient jobs={jobs} categories={categories || []} />
           ) : (
             <div className="text-center py-20 bg-white rounded-2xl border border-secondary-200">
               <p className="text-lg text-secondary-600">Henüz ilan bulunmamaktadır.</p>

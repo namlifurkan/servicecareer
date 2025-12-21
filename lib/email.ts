@@ -4,8 +4,15 @@ import ApplicationReceivedEmail from '@/emails/application-received';
 import NewApplicationEmail from '@/emails/new-application';
 import ApplicationStatusEmail from '@/emails/application-status';
 
-// Initialize Resend client
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Lazy initialize Resend client to avoid build-time errors
+let resend: Resend | null = null;
+
+function getResendClient(): Resend {
+  if (!resend) {
+    resend = new Resend(process.env.RESEND_API_KEY);
+  }
+  return resend;
+}
 
 // Email sender configuration
 // NOTE: This email needs domain verification in Resend dashboard
@@ -38,7 +45,7 @@ export async function sendWelcomeEmail(
   try {
     console.log(`[Email Service] Sending welcome email to: ${to}`);
 
-    const { data, error } = await resend.emails.send({
+    const { data, error } = await getResendClient().emails.send({
       from: FROM_EMAIL,
       to: [to],
       subject: 'ServiceCareer\'e Hoş Geldiniz!',
@@ -95,7 +102,7 @@ export async function sendApplicationReceivedEmail(
     console.log(`[Email Service] Sending application confirmation to: ${to}`);
     console.log(`[Email Service] Job: ${jobTitle} at ${companyName}`);
 
-    const { data, error } = await resend.emails.send({
+    const { data, error } = await getResendClient().emails.send({
       from: FROM_EMAIL,
       to: [to],
       subject: `Başvurunuz Alındı - ${jobTitle}`,
@@ -159,7 +166,7 @@ export async function sendNewApplicationEmail(
     console.log(`[Email Service] Sending new application notification to: ${to}`);
     console.log(`[Email Service] Candidate: ${candidateName} for ${jobTitle}`);
 
-    const { data, error } = await resend.emails.send({
+    const { data, error } = await getResendClient().emails.send({
       from: FROM_EMAIL,
       to: [to],
       subject: `Yeni Başvuru: ${candidateName} - ${jobTitle}`,
@@ -224,7 +231,7 @@ export async function sendApplicationStatusEmail(
     console.log(`[Email Service] Sending status update to: ${to}`);
     console.log(`[Email Service] Status: ${status} for ${jobTitle}`);
 
-    const { data, error } = await resend.emails.send({
+    const { data, error } = await getResendClient().emails.send({
       from: FROM_EMAIL,
       to: [to],
       subject: `Başvuru Durumu Güncellendi - ${jobTitle}`,

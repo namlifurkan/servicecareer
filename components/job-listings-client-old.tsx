@@ -1,18 +1,10 @@
 'use client'
 
 import { useState, useMemo, useEffect } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { MapPin, Clock, Grid3x3, List, X, Building2 } from 'lucide-react'
 import { formatRelativeTime } from '@/lib/utils'
-import { MultiSelect, type MultiSelectOption } from '@/components/ui/multi-select'
-import {
-  CATEGORY_FILTERS,
-  getCategorySlug,
-  getFiltersForCategory,
-  type FilterConfig,
-  type CategoryAttributes
-} from '@/lib/types/job-attributes'
 
 interface Job {
   id: string
@@ -26,11 +18,6 @@ interface Job {
   salary_currency: string | null
   show_salary: boolean
   published_at: string
-  certifications: string[]
-  vehicle_types: string[]
-  languages: string[]
-  shift_types: string[]
-  category_attributes: CategoryAttributes
   companies: {
     name: string
     logo_url: string | null
@@ -45,11 +32,11 @@ interface Job {
 
 interface JobListingsClientProps {
   jobs: Job[]
-  categories: Array<{ id: string; name: string; slug: string }>
 }
 
-export function JobListingsClient({ jobs, categories }: JobListingsClientProps) {
+export function JobListingsClient({ jobs }: JobListingsClientProps) {
   const searchParams = useSearchParams()
+  const router = useRouter()
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('list')
 
   // Filters - initialize from URL params
@@ -57,10 +44,6 @@ export function JobListingsClient({ jobs, categories }: JobListingsClientProps) 
   const [selectedWorkType, setSelectedWorkType] = useState<string>('')
   const [selectedExperience, setSelectedExperience] = useState<string>('')
   const [searchQuery, setSearchQuery] = useState<string>('')
-  const [selectedCategory, setSelectedCategory] = useState<string>('')
-
-  // Category-specific attribute filters (multi-select)
-  const [attributeFilters, setAttributeFilters] = useState<Record<string, string[]>>({})
 
   // Read URL parameters on mount
   useEffect(() => {
@@ -68,13 +51,11 @@ export function JobListingsClient({ jobs, categories }: JobListingsClientProps) 
     const city = searchParams.get('city') || ''
     const workType = searchParams.get('work_type') || ''
     const experience = searchParams.get('experience') || ''
-    const category = searchParams.get('category') || ''
 
     setSearchQuery(search)
     setSelectedCity(city)
     setSelectedWorkType(workType)
     setSelectedExperience(experience)
-    setSelectedCategory(category)
   }, [searchParams])
 
   // Get unique values for filters
@@ -100,16 +81,9 @@ export function JobListingsClient({ jobs, categories }: JobListingsClientProps) 
     { value: 'executive', label: 'Yönetici' },
   ]
 
-  // Get active category filters based on selected category
-  const activeCategoryFilters = useMemo(() => {
-    if (!selectedCategory) return []
-    return getFiltersForCategory(selectedCategory)
-  }, [selectedCategory])
-
   // Filter jobs
   const filteredJobs = useMemo(() => {
     return jobs.filter(job => {
-      // Basic filters
       const matchesCity = !selectedCity || job.location_city === selectedCity
       const matchesWorkType = !selectedWorkType || job.work_type === selectedWorkType
       const matchesExperience = !selectedExperience || job.experience_level === selectedExperience
@@ -117,65 +91,12 @@ export function JobListingsClient({ jobs, categories }: JobListingsClientProps) 
         job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (job.companies?.name || '').toLowerCase().includes(searchQuery.toLowerCase())
 
-      // Category filter
-      const matchesCategory = !selectedCategory || job.categories?.slug === selectedCategory
-
-      // Category-specific attribute filters
-      let matchesAttributes = true
-      if (selectedCategory && Object.keys(attributeFilters).length > 0) {
-        for (const [filterKey, selectedValues] of Object.entries(attributeFilters)) {
-          if (selectedValues.length === 0) continue
-
-          // Check if this is a common attribute or category-specific
-          if (filterKey === 'certifications' || filterKey === 'vehicle_types' ||
-              filterKey === 'languages' || filterKey === 'shift_types') {
-            // Common attributes stored as arrays in job table
-            const jobValues = job[filterKey as keyof Job] as string[]
-            if (!jobValues || !Array.isArray(jobValues)) {
-              matchesAttributes = false
-              break
-            }
-            // Check if any selected value is in job values
-            const hasMatch = selectedValues.some(v => jobValues.includes(v))
-            if (!hasMatch) {
-              matchesAttributes = false
-              break
-            }
-          } else {
-            // Category-specific attributes in JSONB
-            const categoryAttrs = job.category_attributes || {}
-            const jobValues = categoryAttrs[filterKey as keyof CategoryAttributes] as string[] | undefined
-            if (!jobValues || !Array.isArray(jobValues)) {
-              matchesAttributes = false
-              break
-            }
-            // Check if any selected value is in job values
-            const hasMatch = selectedValues.some(v => jobValues.includes(v))
-            if (!hasMatch) {
-              matchesAttributes = false
-              break
-            }
-          }
-        }
-      }
-
-      return matchesCity && matchesWorkType && matchesExperience &&
-             matchesSearch && matchesCategory && matchesAttributes
+      return matchesCity && matchesWorkType && matchesExperience && matchesSearch
     })
-  }, [jobs, selectedCity, selectedWorkType, selectedExperience, searchQuery,
-      selectedCategory, attributeFilters])
+  }, [jobs, selectedCity, selectedWorkType, selectedExperience, searchQuery])
 
   // Active filters count
-  const activeFiltersCount = useMemo(() => {
-    let count = 0
-    if (selectedCity) count++
-    if (selectedWorkType) count++
-    if (selectedExperience) count++
-    if (searchQuery) count++
-    if (selectedCategory) count++
-    count += Object.values(attributeFilters).reduce((sum, values) => sum + values.length, 0)
-    return count
-  }, [selectedCity, selectedWorkType, selectedExperience, searchQuery, selectedCategory, attributeFilters])
+  const activeFiltersCount = [selectedCity, selectedWorkType, selectedExperience, searchQuery].filter(Boolean).length
 
   // Clear all filters
   const clearAllFilters = () => {
@@ -183,22 +104,6 @@ export function JobListingsClient({ jobs, categories }: JobListingsClientProps) 
     setSelectedWorkType('')
     setSelectedExperience('')
     setSearchQuery('')
-    setSelectedCategory('')
-    setAttributeFilters({})
-  }
-
-  // Handle attribute filter change
-  const handleAttributeFilterChange = (filterKey: string, values: string[]) => {
-    setAttributeFilters(prev => ({
-      ...prev,
-      [filterKey]: values
-    }))
-  }
-
-  // Clear category and its filters
-  const handleCategoryChange = (category: string) => {
-    setSelectedCategory(category)
-    setAttributeFilters({}) // Clear all attribute filters when category changes
   }
 
   const getWorkTypeLabel = (type: string) => {
@@ -228,7 +133,7 @@ export function JobListingsClient({ jobs, categories }: JobListingsClientProps) 
                 onClick={clearAllFilters}
                 className="text-sm text-primary-600 hover:text-primary-700 font-medium"
               >
-                Temizle ({activeFiltersCount})
+                Temizle
               </button>
             )}
           </div>
@@ -246,23 +151,6 @@ export function JobListingsClient({ jobs, categories }: JobListingsClientProps) 
                 placeholder="Pozisyon veya şirket..."
                 className="w-full px-3 py-2 bg-white border border-secondary-200 rounded-lg text-sm text-secondary-900 placeholder:text-secondary-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               />
-            </div>
-
-            {/* Category Filter */}
-            <div>
-              <label className="block text-sm font-medium text-secondary-900 mb-2">
-                Kategori
-              </label>
-              <select
-                value={selectedCategory}
-                onChange={(e) => handleCategoryChange(e.target.value)}
-                className="w-full px-3 py-2 bg-white border border-secondary-200 rounded-lg text-sm text-secondary-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-              >
-                <option value="">Tüm Kategoriler</option>
-                {categories.map(cat => (
-                  <option key={cat.id} value={cat.slug}>{cat.name}</option>
-                ))}
-              </select>
             </div>
 
             {/* City Filter */}
@@ -315,31 +203,6 @@ export function JobListingsClient({ jobs, categories }: JobListingsClientProps) 
                 ))}
               </select>
             </div>
-
-            {/* Category-Specific Attribute Filters */}
-            {selectedCategory && activeCategoryFilters.length > 0 && (
-              <>
-                <div className="border-t border-secondary-200 pt-6">
-                  <h4 className="text-sm font-semibold text-secondary-900 mb-4">
-                    Özel Filtreler
-                  </h4>
-                  <div className="space-y-4">
-                    {activeCategoryFilters
-                      .filter(filter => filter.priority === 'high' || filter.priority === 'medium')
-                      .map((filter) => (
-                        <MultiSelect
-                          key={filter.key}
-                          label={filter.label}
-                          options={filter.options}
-                          value={attributeFilters[filter.key] || []}
-                          onChange={(values) => handleAttributeFilterChange(filter.key, values)}
-                          placeholder={`${filter.label} seçin...`}
-                        />
-                      ))}
-                  </div>
-                </div>
-              </>
-            )}
           </div>
         </div>
       </aside>

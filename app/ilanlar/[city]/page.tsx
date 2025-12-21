@@ -74,6 +74,13 @@ export default async function CityJobListingsPage({ params }: Props) {
     .map(word => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ')
 
+  // Fetch all categories for filter
+  const { data: categories } = await supabase
+    .from('categories')
+    .select('id, name, slug')
+    .eq('is_active', true)
+    .order('display_order', { ascending: true })
+
   // Fetch jobs for the specific city
   const { data: jobs, error } = await supabase
     .from('jobs')
@@ -84,9 +91,10 @@ export default async function CityJobListingsPage({ params }: Props) {
         logo_url,
         city
       ),
-      cities (
+      categories!jobs_category_id_fkey (
         id,
-        name
+        name,
+        slug
       )
     `)
     .eq('status', 'active')
@@ -173,7 +181,7 @@ export default async function CityJobListingsPage({ params }: Props) {
             <p className="text-accent-600">İlanlar yüklenirken bir hata oluştu.</p>
           </div>
         ) : jobs && jobs.length > 0 ? (
-          <JobListingsClient jobs={jobs} />
+          <JobListingsClient jobs={jobs} categories={categories || []} />
         ) : (
           <div className="bg-white rounded-xl border border-secondary-200 p-12 text-center">
             <div className="max-w-md mx-auto">

@@ -778,13 +778,13 @@ export function JobListingsEnhanced({
                 <div className="mt-3 pt-3 border-t border-secondary-100 flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     {job.meal_policy && job.meal_policy !== 'none' && (
-                      <Utensils className="h-4 w-4 text-orange-500" title="Yemek" />
+                      <span title="Yemek"><Utensils className="h-4 w-4 text-orange-500" /></span>
                     )}
                     {job.tip_policy && job.tip_policy !== 'no_tips' && (
-                      <Coins className="h-4 w-4 text-green-500" title="Bahşiş" />
+                      <span title="Bahşiş"><Coins className="h-4 w-4 text-green-500" /></span>
                     )}
                     {job.uniform_policy && job.uniform_policy !== 'none' && (
-                      <Shirt className="h-4 w-4 text-blue-500" title="Üniforma" />
+                      <span title="Üniforma"><Shirt className="h-4 w-4 text-blue-500" /></span>
                     )}
                   </div>
                   {job.show_salary && job.salary_min && (
@@ -857,10 +857,10 @@ export function JobListingsEnhanced({
                           {/* Benefits */}
                           <span className="flex items-center gap-1.5">
                             {job.meal_policy && job.meal_policy !== 'none' && (
-                              <Utensils className="h-3.5 w-3.5 text-orange-500" title="Yemek" />
+                              <span title="Yemek"><Utensils className="h-3.5 w-3.5 text-orange-500" /></span>
                             )}
                             {job.tip_policy && job.tip_policy !== 'no_tips' && (
-                              <Coins className="h-3.5 w-3.5 text-green-500" title="Bahşiş" />
+                              <span title="Bahşiş"><Coins className="h-3.5 w-3.5 text-green-500" /></span>
                             )}
                           </span>
                           {job.published_at && (

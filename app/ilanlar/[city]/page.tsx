@@ -132,6 +132,13 @@ export default async function CityJobListingsPage({ params }: Props) {
     .order('published_at', { ascending: false })
     .limit(50)
 
+  // Transform jobs to ensure companies and categories are single objects
+  const transformedJobs = jobs?.map(job => ({
+    ...job,
+    companies: Array.isArray(job.companies) ? job.companies[0] || null : job.companies,
+    categories: Array.isArray(job.categories) ? job.categories[0] || null : job.categories,
+  })) || []
+
   return (
     <>
       <Header />
@@ -171,14 +178,14 @@ export default async function CityJobListingsPage({ params }: Props) {
                 </h1>
               </div>
               <p className="text-secondary-600">
-                {cityName} ilinde hizmet sektöründe {jobs?.length || 0} aktif iş ilanı
+                {cityName} ilinde hizmet sektöründe {transformedJobs.length} aktif iş ilanı
               </p>
             </div>
 
             {/* Stats */}
             <div className="flex items-center gap-4">
               <div className="text-center px-4 py-2 bg-primary-50 rounded-lg">
-                <p className="text-xl font-bold text-primary-600">{jobs?.length || 0}</p>
+                <p className="text-xl font-bold text-primary-600">{transformedJobs.length}</p>
                 <p className="text-xs text-primary-600">İlan</p>
               </div>
               {(urgentCount || 0) > 0 && (
@@ -202,8 +209,8 @@ export default async function CityJobListingsPage({ params }: Props) {
                 '@type': 'ItemList',
                 name: `${cityName} İş İlanları`,
                 description: `${cityName} ilinde hizmet sektöründe iş ilanları`,
-                numberOfItems: jobs?.length || 0,
-                itemListElement: jobs?.slice(0, 10).map((job, index) => ({
+                numberOfItems: transformedJobs.length,
+                itemListElement: transformedJobs.slice(0, 10).map((job, index) => ({
                   '@type': 'ListItem',
                   position: index + 1,
                   item: {
@@ -234,8 +241,8 @@ export default async function CityJobListingsPage({ params }: Props) {
           <div className="bg-white rounded-2xl border border-accent-200 p-8 text-center">
             <p className="text-accent-600">İlanlar yüklenirken bir hata oluştu.</p>
           </div>
-        ) : jobs && jobs.length > 0 ? (
-          <JobListingsEnhanced jobs={jobs} categories={categories || []} initialCity={cityName} />
+        ) : transformedJobs && transformedJobs.length > 0 ? (
+          <JobListingsEnhanced jobs={transformedJobs} categories={categories || []} initialCity={cityName} />
         ) : (
           <div className="bg-white rounded-xl border border-secondary-200 p-12 text-center">
             <div className="max-w-md mx-auto">

@@ -101,6 +101,13 @@ export default async function JobListingsPage() {
     })
   }
 
+  // Transform jobs to ensure companies and categories are single objects
+  const transformedJobs = jobs?.map(job => ({
+    ...job,
+    companies: Array.isArray(job.companies) ? job.companies[0] || null : job.companies,
+    categories: Array.isArray(job.categories) ? job.categories[0] || null : job.categories,
+  })) || []
+
   return (
     <>
       <Header />
@@ -114,14 +121,14 @@ export default async function JobListingsPage() {
                   Hizmet Sektörü İş İlanları
                 </h1>
                 <p className="text-base md:text-lg text-secondary-600">
-                  Restoran, kafe, bar ve otel sektöründe {jobs?.length || 0} aktif ilan
+                  Restoran, kafe, bar ve otel sektöründe {transformedJobs.length} aktif ilan
                 </p>
               </div>
 
               {/* Quick Stats */}
               <div className="flex items-center gap-4 md:gap-6">
                 <div className="text-center px-4 py-2 bg-secondary-50 rounded-lg">
-                  <p className="text-2xl font-bold text-primary-600">{jobs?.length || 0}</p>
+                  <p className="text-2xl font-bold text-primary-600">{transformedJobs.length}</p>
                   <p className="text-xs text-secondary-500">Toplam İlan</p>
                 </div>
                 {(urgentCount || 0) > 0 && (
@@ -194,8 +201,8 @@ export default async function JobListingsPage() {
             <div className="bg-white rounded-2xl border border-accent-200 p-8 text-center">
               <p className="text-accent-600">İlanlar yüklenirken bir hata oluştu.</p>
             </div>
-          ) : jobs && jobs.length > 0 ? (
-            <JobListingsEnhanced jobs={jobs} categories={categories || []} />
+          ) : transformedJobs.length > 0 ? (
+            <JobListingsEnhanced jobs={transformedJobs} categories={categories || []} />
           ) : (
             <div className="text-center py-20 bg-white rounded-2xl border border-secondary-200">
               <p className="text-lg text-secondary-600">Henüz ilan bulunmamaktadır.</p>

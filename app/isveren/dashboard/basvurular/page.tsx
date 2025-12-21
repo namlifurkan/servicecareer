@@ -46,18 +46,53 @@ export default async function EmployerApplicationsPage() {
     .in('job_id', jobIds)
     .order('created_at', { ascending: false })
 
-  // Manually join profiles data for registered users
+  // Manually join profiles and candidate data for registered users
   const applicationsWithProfiles = await Promise.all(
     (applications || []).map(async (app) => {
       if (app.candidate_id) {
+        // Get basic profile
         const { data: profile } = await supabase
           .from('profiles')
           .select('id, full_name, email, avatar_url, phone')
           .eq('id', app.candidate_id)
           .single()
-        return { ...app, profiles: profile }
+
+        // Get candidate profile with detailed info
+        const { data: candidateProfile } = await supabase
+          .from('candidate_profiles')
+          .select('*')
+          .eq('id', app.candidate_id)
+          .single()
+
+        // Get languages
+        const { data: languages } = await supabase
+          .from('candidate_languages')
+          .select('*')
+          .eq('candidate_id', app.candidate_id)
+
+        // Get certificates
+        const { data: certificates } = await supabase
+          .from('candidate_certificates')
+          .select('*')
+          .eq('candidate_id', app.candidate_id)
+
+        // Get experiences
+        const { data: experiences } = await supabase
+          .from('experiences')
+          .select('*')
+          .eq('candidate_id', app.candidate_id)
+          .order('start_date', { ascending: false })
+
+        return {
+          ...app,
+          profiles: profile,
+          candidate_profile: candidateProfile,
+          languages: languages || [],
+          certificates: certificates || [],
+          experiences: experiences || []
+        }
       }
-      return { ...app, profiles: null }
+      return { ...app, profiles: null, candidate_profile: null, languages: [], certificates: [], experiences: [] }
     })
   )
 

@@ -11,7 +11,6 @@ import {
   Loader2,
   ChefHat,
   Clock,
-  Car,
   Building,
   Star,
   ChevronDown,
@@ -23,13 +22,11 @@ import {
   ShiftType,
   VenueType,
   CuisineType,
-  VehicleType,
   ServiceExperienceLevel,
   JOB_POSITION_LABELS,
   SHIFT_TYPE_LABELS,
   VENUE_TYPE_LABELS,
   CUISINE_TYPE_LABELS,
-  VEHICLE_TYPE_LABELS,
   EXPERIENCE_LEVEL_LABELS,
   getPositionsGrouped,
 } from '@/lib/types/service-industry'
@@ -58,21 +55,16 @@ export function CandidateProfileFormEnhanced({ profile, candidateProfile }: Cand
     // Social links
     linkedin_url: candidateProfile?.linkedin_url || '',
     portfolio_url: candidateProfile?.portfolio_url || '',
-    // Service industry specific - Preferences
-    preferred_positions: candidateProfile?.preferred_positions || [],
-    preferred_shifts: candidateProfile?.preferred_shifts || [],
-    preferred_venue_types: candidateProfile?.preferred_venue_types || [],
-    cuisine_expertise: candidateProfile?.cuisine_expertise || [],
+    // Service industry specific - Preferences (matching DB column names)
+    position_types: candidateProfile?.position_types || [],
+    shift_preferences: candidateProfile?.shift_preferences || [],
+    venue_types: candidateProfile?.venue_types || [],
+    cuisine_specialties: candidateProfile?.cuisine_specialties || [],
     // Experience
-    experience_level: candidateProfile?.experience_level || '',
-    years_of_experience: candidateProfile?.years_of_experience || 0,
-    // Vehicle (for couriers)
-    has_vehicle: candidateProfile?.has_vehicle || false,
-    vehicle_type: candidateProfile?.vehicle_type || '',
-    has_driver_license: candidateProfile?.has_driver_license || false,
+    service_experience: candidateProfile?.service_experience || '',
+    experience_years: candidateProfile?.experience_years || 0,
     // Work preferences
-    available_immediately: candidateProfile?.available_immediately ?? true,
-    willing_to_relocate: candidateProfile?.willing_to_relocate || false,
+    available_from: candidateProfile?.available_from || '',
     expected_salary_min: candidateProfile?.expected_salary_min || '',
     expected_salary_max: candidateProfile?.expected_salary_max || '',
     // General skills (text)
@@ -107,18 +99,14 @@ export function CandidateProfileFormEnhanced({ profile, candidateProfile }: Cand
           city: formData.city,
           linkedin_url: formData.linkedin_url,
           portfolio_url: formData.portfolio_url,
-          // Service industry fields
-          preferred_positions: formData.preferred_positions,
-          preferred_shifts: formData.preferred_shifts,
-          preferred_venue_types: formData.preferred_venue_types,
-          cuisine_expertise: formData.cuisine_expertise,
-          experience_level: formData.experience_level || null,
-          years_of_experience: formData.years_of_experience || null,
-          has_vehicle: formData.has_vehicle,
-          vehicle_type: formData.vehicle_type || null,
-          has_driver_license: formData.has_driver_license,
-          available_immediately: formData.available_immediately,
-          willing_to_relocate: formData.willing_to_relocate,
+          // Service industry fields (matching DB column names)
+          position_types: formData.position_types,
+          shift_preferences: formData.shift_preferences,
+          venue_types: formData.venue_types,
+          cuisine_specialties: formData.cuisine_specialties,
+          service_experience: formData.service_experience || null,
+          experience_years: formData.experience_years || null,
+          available_from: formData.available_from || null,
           expected_salary_min: formData.expected_salary_min || null,
           expected_salary_max: formData.expected_salary_max || null,
           skills: formData.skills.split(',').map((s: string) => s.trim()).filter(Boolean),
@@ -181,38 +169,38 @@ export function CandidateProfileFormEnhanced({ profile, candidateProfile }: Cand
 
   // Multi-select handlers
   const togglePosition = (position: JobPositionType) => {
-    const current = formData.preferred_positions
+    const current = formData.position_types
     if (current.includes(position)) {
-      setFormData({ ...formData, preferred_positions: current.filter((p: string) => p !== position) })
+      setFormData({ ...formData, position_types: current.filter((p: string) => p !== position) })
     } else {
-      setFormData({ ...formData, preferred_positions: [...current, position] })
+      setFormData({ ...formData, position_types: [...current, position] })
     }
   }
 
   const toggleShift = (shift: ShiftType) => {
-    const current = formData.preferred_shifts
+    const current = formData.shift_preferences
     if (current.includes(shift)) {
-      setFormData({ ...formData, preferred_shifts: current.filter((s: string) => s !== shift) })
+      setFormData({ ...formData, shift_preferences: current.filter((s: string) => s !== shift) })
     } else {
-      setFormData({ ...formData, preferred_shifts: [...current, shift] })
+      setFormData({ ...formData, shift_preferences: [...current, shift] })
     }
   }
 
   const toggleVenue = (venue: VenueType) => {
-    const current = formData.preferred_venue_types
+    const current = formData.venue_types
     if (current.includes(venue)) {
-      setFormData({ ...formData, preferred_venue_types: current.filter((v: string) => v !== venue) })
+      setFormData({ ...formData, venue_types: current.filter((v: string) => v !== venue) })
     } else {
-      setFormData({ ...formData, preferred_venue_types: [...current, venue] })
+      setFormData({ ...formData, venue_types: [...current, venue] })
     }
   }
 
   const toggleCuisine = (cuisine: CuisineType) => {
-    const current = formData.cuisine_expertise
+    const current = formData.cuisine_specialties
     if (current.includes(cuisine)) {
-      setFormData({ ...formData, cuisine_expertise: current.filter((c: string) => c !== cuisine) })
+      setFormData({ ...formData, cuisine_specialties: current.filter((c: string) => c !== cuisine) })
     } else {
-      setFormData({ ...formData, cuisine_expertise: [...current, cuisine] })
+      setFormData({ ...formData, cuisine_specialties: [...current, cuisine] })
     }
   }
 
@@ -417,9 +405,9 @@ export function CandidateProfileFormEnhanced({ profile, candidateProfile }: Cand
               </p>
 
               {/* Selected Positions */}
-              {formData.preferred_positions.length > 0 && (
+              {formData.position_types.length > 0 && (
                 <div className="flex flex-wrap gap-2 mb-3">
-                  {formData.preferred_positions.map((pos: JobPositionType) => (
+                  {formData.position_types.map((pos: JobPositionType) => (
                     <span
                       key={pos}
                       className="inline-flex items-center gap-1 px-3 py-1 bg-primary-50 text-primary-700 text-sm rounded-full"
@@ -445,8 +433,8 @@ export function CandidateProfileFormEnhanced({ profile, candidateProfile }: Cand
                   className="w-full flex items-center justify-between px-4 py-2.5 bg-white border border-secondary-200 rounded-lg hover:border-secondary-300 transition-colors text-left"
                 >
                   <span className="text-secondary-600">
-                    {formData.preferred_positions.length > 0
-                      ? `${formData.preferred_positions.length} pozisyon seçildi`
+                    {formData.position_types.length > 0
+                      ? `${formData.position_types.length} pozisyon seçildi`
                       : 'Pozisyon seçin...'}
                   </span>
                   <ChevronDown className={`h-5 w-5 text-secondary-400 transition-transform ${isPositionDropdownOpen ? 'rotate-180' : ''}`} />
@@ -474,7 +462,7 @@ export function CandidateProfileFormEnhanced({ profile, candidateProfile }: Cand
                               >
                                 <input
                                   type="checkbox"
-                                  checked={formData.preferred_positions.includes(position.value)}
+                                  checked={formData.position_types.includes(position.value)}
                                   onChange={() => togglePosition(position.value)}
                                   className="rounded border-secondary-300 text-primary-600 focus:ring-primary-500"
                                 />
@@ -498,8 +486,8 @@ export function CandidateProfileFormEnhanced({ profile, candidateProfile }: Cand
                   Deneyim Seviyesi
                 </label>
                 <select
-                  value={formData.experience_level}
-                  onChange={(e) => setFormData({ ...formData, experience_level: e.target.value })}
+                  value={formData.service_experience}
+                  onChange={(e) => setFormData({ ...formData, service_experience: e.target.value })}
                   className="w-full px-4 py-2 bg-white border border-secondary-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 >
                   <option value="">Seçiniz...</option>
@@ -517,8 +505,8 @@ export function CandidateProfileFormEnhanced({ profile, candidateProfile }: Cand
                   type="number"
                   min="0"
                   max="50"
-                  value={formData.years_of_experience}
-                  onChange={(e) => setFormData({ ...formData, years_of_experience: parseInt(e.target.value) || 0 })}
+                  value={formData.experience_years}
+                  onChange={(e) => setFormData({ ...formData, experience_years: parseInt(e.target.value) || 0 })}
                   className="w-full px-4 py-2 bg-white border border-secondary-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 />
               </div>
@@ -535,14 +523,14 @@ export function CandidateProfileFormEnhanced({ profile, candidateProfile }: Cand
                   <label
                     key={value}
                     className={`flex items-center gap-2 p-3 rounded-lg border cursor-pointer transition-colors ${
-                      formData.preferred_shifts.includes(value)
+                      formData.shift_preferences.includes(value)
                         ? 'border-primary-500 bg-primary-50 text-primary-700'
                         : 'border-secondary-200 hover:border-secondary-300 text-secondary-700'
                     }`}
                   >
                     <input
                       type="checkbox"
-                      checked={formData.preferred_shifts.includes(value)}
+                      checked={formData.shift_preferences.includes(value)}
                       onChange={() => toggleShift(value as ShiftType)}
                       className="hidden"
                     />
@@ -563,14 +551,14 @@ export function CandidateProfileFormEnhanced({ profile, candidateProfile }: Cand
                   <label
                     key={value}
                     className={`flex items-center gap-2 p-2.5 rounded-lg border cursor-pointer transition-colors text-sm ${
-                      formData.preferred_venue_types.includes(value)
+                      formData.venue_types.includes(value)
                         ? 'border-primary-500 bg-primary-50 text-primary-700'
                         : 'border-secondary-200 hover:border-secondary-300 text-secondary-700'
                     }`}
                   >
                     <input
                       type="checkbox"
-                      checked={formData.preferred_venue_types.includes(value)}
+                      checked={formData.venue_types.includes(value)}
                       onChange={() => toggleVenue(value as VenueType)}
                       className="hidden"
                     />
@@ -594,14 +582,14 @@ export function CandidateProfileFormEnhanced({ profile, candidateProfile }: Cand
                   <label
                     key={value}
                     className={`flex items-center gap-2 p-2.5 rounded-lg border cursor-pointer transition-colors text-sm ${
-                      formData.cuisine_expertise.includes(value)
+                      formData.cuisine_specialties.includes(value)
                         ? 'border-orange-500 bg-orange-50 text-orange-700'
                         : 'border-secondary-200 hover:border-secondary-300 text-secondary-700'
                     }`}
                   >
                     <input
                       type="checkbox"
-                      checked={formData.cuisine_expertise.includes(value)}
+                      checked={formData.cuisine_specialties.includes(value)}
                       onChange={() => toggleCuisine(value as CuisineType)}
                       className="hidden"
                     />
@@ -616,85 +604,21 @@ export function CandidateProfileFormEnhanced({ profile, candidateProfile }: Cand
         {/* Section: Work Conditions */}
         {activeSection === 'work' && (
           <div className="space-y-6">
-            {/* Vehicle Info */}
-            <div className="bg-secondary-50 rounded-lg p-4">
-              <label className="block text-sm font-medium text-secondary-900 mb-3">
-                <Car className="h-4 w-4 inline mr-1" />
-                Araç Bilgileri (Kurye Pozisyonları İçin)
-              </label>
-
-              <div className="space-y-4">
-                <label className="flex items-center gap-3">
-                  <input
-                    type="checkbox"
-                    checked={formData.has_vehicle}
-                    onChange={(e) => setFormData({ ...formData, has_vehicle: e.target.checked })}
-                    className="rounded border-secondary-300 text-primary-600 focus:ring-primary-500"
-                  />
-                  <span className="text-sm text-secondary-700">Aracım var</span>
-                </label>
-
-                {formData.has_vehicle && (
-                  <div className="ml-6">
-                    <label className="block text-sm font-medium text-secondary-900 mb-2">
-                      Araç Tipi
-                    </label>
-                    <select
-                      value={formData.vehicle_type}
-                      onChange={(e) => setFormData({ ...formData, vehicle_type: e.target.value })}
-                      className="w-full px-4 py-2 bg-white border border-secondary-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                    >
-                      <option value="">Seçiniz...</option>
-                      {Object.entries(VEHICLE_TYPE_LABELS).filter(([v]) => v !== 'none').map(([value, label]) => (
-                        <option key={value} value={value}>{label}</option>
-                      ))}
-                    </select>
-                  </div>
-                )}
-
-                <label className="flex items-center gap-3">
-                  <input
-                    type="checkbox"
-                    checked={formData.has_driver_license}
-                    onChange={(e) => setFormData({ ...formData, has_driver_license: e.target.checked })}
-                    className="rounded border-secondary-300 text-primary-600 focus:ring-primary-500"
-                  />
-                  <span className="text-sm text-secondary-700">Sürücü belgem var</span>
-                </label>
-              </div>
-            </div>
-
             {/* Availability */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="bg-secondary-50 rounded-lg p-4">
-                <label className="flex items-center gap-3 mb-3">
-                  <input
-                    type="checkbox"
-                    checked={formData.available_immediately}
-                    onChange={(e) => setFormData({ ...formData, available_immediately: e.target.checked })}
-                    className="rounded border-secondary-300 text-primary-600 focus:ring-primary-500"
-                  />
-                  <div>
-                    <span className="text-sm font-medium text-secondary-900">Hemen Başlayabilirim</span>
-                    <p className="text-xs text-secondary-500">İşe hemen başlamaya hazırım</p>
-                  </div>
-                </label>
-              </div>
-
-              <div className="bg-secondary-50 rounded-lg p-4">
-                <label className="flex items-center gap-3 mb-3">
-                  <input
-                    type="checkbox"
-                    checked={formData.willing_to_relocate}
-                    onChange={(e) => setFormData({ ...formData, willing_to_relocate: e.target.checked })}
-                    className="rounded border-secondary-300 text-primary-600 focus:ring-primary-500"
-                  />
-                  <div>
-                    <span className="text-sm font-medium text-secondary-900">Şehir Değiştirebilirim</span>
-                    <p className="text-xs text-secondary-500">Farklı şehirlerde çalışmaya açığım</p>
-                  </div>
-                </label>
-              </div>
+            <div>
+              <label className="block text-sm font-medium text-secondary-900 mb-2">
+                <Clock className="h-4 w-4 inline mr-1" />
+                Ne Zaman Başlayabilirsiniz?
+              </label>
+              <input
+                type="date"
+                value={formData.available_from}
+                onChange={(e) => setFormData({ ...formData, available_from: e.target.value })}
+                className="w-full px-4 py-2 bg-white border border-secondary-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              />
+              <p className="text-xs text-secondary-500 mt-1">
+                Boş bırakırsanız hemen başlayabileceğiniz anlaşılır
+              </p>
             </div>
 
             {/* Expected Salary */}

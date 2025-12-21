@@ -95,8 +95,8 @@ export default async function CandidateDashboardPage() {
     if (candidateProfile?.bio) score += 10
     if (candidateProfile?.title) score += 5
     if (candidateProfile?.city) score += 5
-    if (candidateProfile?.preferred_positions?.length > 0) score += 15
-    if (candidateProfile?.experience_level) score += 10
+    if (candidateProfile?.position_types?.length > 0) score += 15
+    if (candidateProfile?.service_experience) score += 10
     if (experiencesCount && experiencesCount > 0) score += 20
     if (certificatesCount && certificatesCount > 0) score += 15
     if (languagesCount && languagesCount > 0) score += 10

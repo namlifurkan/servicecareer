@@ -68,8 +68,7 @@ export default async function CandidateProfilePage() {
     .from('candidate_languages')
     .select('*')
     .eq('candidate_id', user.id)
-    .order('is_native', { ascending: false })
-    .order('proficiency_level', { ascending: false })
+    .order('created_at', { ascending: false })
 
   return (
     <div className="min-h-screen bg-secondary-50">
@@ -86,6 +85,7 @@ export default async function CandidateProfilePage() {
 
         {/* Profile Completion Guide */}
         <ProfileCompletionGuide
+          profile={profile}
           candidateProfile={candidateProfile}
           experiences={experiences || []}
           certificates={certificates || []}
@@ -130,11 +130,13 @@ export default async function CandidateProfilePage() {
 
 // Profile Completion Guide Component
 function ProfileCompletionGuide({
+  profile,
   candidateProfile,
   experiences,
   certificates,
   languages,
 }: {
+  profile: any
   candidateProfile: any
   experiences: any[]
   certificates: any[]
@@ -143,7 +145,7 @@ function ProfileCompletionGuide({
   const checkItems = [
     {
       label: 'Profil fotoğrafı',
-      completed: !!candidateProfile?.avatar_url,
+      completed: !!profile?.avatar_url,
       weight: 10,
     },
     {
@@ -158,12 +160,12 @@ function ProfileCompletionGuide({
     },
     {
       label: 'Tercih edilen pozisyonlar',
-      completed: candidateProfile?.preferred_positions?.length > 0,
+      completed: candidateProfile?.position_types?.length > 0,
       weight: 15,
     },
     {
       label: 'Deneyim seviyesi',
-      completed: !!candidateProfile?.experience_level,
+      completed: !!candidateProfile?.service_experience,
       weight: 10,
     },
     {

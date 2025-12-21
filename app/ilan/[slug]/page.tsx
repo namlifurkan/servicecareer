@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { Header } from '@/components/header'
 import { Footer } from '@/components/footer'
 import { JobDetailClient } from '@/components/job/job-detail-client'
+import { JobShareButton } from '@/components/job/job-share-button'
 import {
   MapPin,
   Briefcase,
@@ -18,7 +19,6 @@ import {
   Users,
   Globe,
   Eye,
-  Share2,
   ChevronRight,
   Home,
   Banknote,
@@ -128,10 +128,8 @@ export default async function JobDetailPage({ params }: { params: Promise<{ slug
     hasApplied = !!application
   }
 
-  await supabase
-    .from('jobs')
-    .update({ view_count: (job.view_count || 0) + 1 })
-    .eq('id', job.id)
+  // Increment view count using RPC (bypasses RLS)
+  await supabase.rpc('increment_view_count', { job_id_param: job.id })
 
   const { data: similarJobs } = await supabase
     .from('jobs')
@@ -319,11 +317,18 @@ export default async function JobDetailPage({ params }: { params: Promise<{ slug
                     </div>
                   )}
                   {job.shift_types && job.shift_types.length > 0 && (
-                    <div>
-                      <p className="text-xs text-secondary-500 mb-1">Vardiya</p>
-                      <p className="text-sm font-medium text-secondary-900">
-                        {job.shift_types.map((s: ShiftType) => SHIFT_TYPE_LABELS[s]).join(', ')}
-                      </p>
+                    <div className="col-span-2">
+                      <p className="text-xs text-secondary-500 mb-2">Vardiya</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {job.shift_types.map((s: ShiftType) => (
+                          <span
+                            key={s}
+                            className="inline-flex items-center px-2.5 py-1 bg-primary-50 text-primary-700 text-xs font-medium rounded-full"
+                          >
+                            {SHIFT_TYPE_LABELS[s]}
+                          </span>
+                        ))}
+                      </div>
                     </div>
                   )}
                   {job.working_days && (
@@ -537,7 +542,16 @@ export default async function JobDetailPage({ params }: { params: Promise<{ slug
                   {job.companies?.company_size && (
                     <div className="flex items-center gap-2 text-sm text-secondary-600">
                       <Users className="h-4 w-4 text-secondary-400" />
-                      {job.companies.company_size} Çalışan
+                      {(() => {
+                        const sizeLabels: Record<string, string> = {
+                          'startup': '1-10 Çalışan',
+                          'small': '11-50 Çalışan',
+                          'medium': '51-200 Çalışan',
+                          'large': '201-1000 Çalışan',
+                          'enterprise': '1000+ Çalışan'
+                        }
+                        return sizeLabels[job.companies.company_size] || job.companies.company_size
+                      })()}
                     </div>
                   )}
                   {job.companies?.website && (
@@ -555,10 +569,7 @@ export default async function JobDetailPage({ params }: { params: Promise<{ slug
               </div>
 
               {/* Share */}
-              <button className="w-full bg-white rounded-xl border border-secondary-200 p-4 flex items-center justify-center gap-2 text-secondary-600 hover:bg-secondary-50 transition-colors">
-                <Share2 className="h-4 w-4" />
-                <span className="text-sm font-medium">İlanı Paylaş</span>
-              </button>
+              <JobShareButton jobTitle={job.title} jobSlug={job.slug} />
             </div>
           </div>
 

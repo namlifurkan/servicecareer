@@ -14,7 +14,12 @@ import {
   ExternalLink,
   CheckCircle,
   XCircle,
-  Clock
+  Clock,
+  MapPin,
+  Globe,
+  Award,
+  Star,
+  Building
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { sendApplicationStatusEmail } from '@/lib/email'
@@ -42,6 +47,36 @@ interface Application {
     avatar_url: string | null
     phone: string | null
   } | null
+  candidate_profile: {
+    title: string | null
+    bio: string | null
+    city: string | null
+    position_types: string[] | null
+    service_experience: string | null
+    experience_years: number | null
+    shift_preferences: string[] | null
+    venue_types: string[] | null
+    cuisine_specialties: string[] | null
+  } | null
+  languages: {
+    id: string
+    language_name: string
+    speaking_level: string
+  }[]
+  certificates: {
+    id: string
+    certificate_type: string
+    certificate_name: string
+    issuing_organization: string | null
+  }[]
+  experiences: {
+    id: string
+    company_name: string
+    position: string
+    start_date: string
+    end_date: string | null
+    is_current: boolean
+  }[]
 }
 
 interface EmployerApplicationsClientProps {
@@ -402,6 +437,9 @@ export function EmployerApplicationsClient({ applications, jobs }: EmployerAppli
                       <p className="font-semibold text-secondary-900">
                         {selectedApplication.profiles?.full_name || selectedApplication.guest_name || 'Anonim'}
                       </p>
+                      {selectedApplication.candidate_profile?.title && (
+                        <p className="text-sm text-primary-600">{selectedApplication.candidate_profile.title}</p>
+                      )}
                       {selectedApplication.guest_name && (
                         <p className="text-xs text-secondary-500 mt-1">Misafir Başvuru</p>
                       )}
@@ -416,9 +454,119 @@ export function EmployerApplicationsClient({ applications, jobs }: EmployerAppli
                         {selectedApplication.profiles?.phone || selectedApplication.guest_phone}
                       </div>
                     )}
+                    {selectedApplication.candidate_profile?.city && (
+                      <div className="flex items-center gap-2 text-sm text-secondary-600">
+                        <MapPin className="h-4 w-4" />
+                        {selectedApplication.candidate_profile.city}
+                      </div>
+                    )}
                   </div>
                 </div>
+
+                {/* Candidate Bio */}
+                {selectedApplication.candidate_profile?.bio && (
+                  <div className="mt-4 p-3 bg-secondary-50 rounded-lg">
+                    <p className="text-sm text-secondary-700">{selectedApplication.candidate_profile.bio}</p>
+                  </div>
+                )}
+
+                {/* Experience Summary */}
+                {(selectedApplication.candidate_profile?.service_experience || selectedApplication.candidate_profile?.experience_years) && (
+                  <div className="mt-4 flex items-center gap-4">
+                    {selectedApplication.candidate_profile.service_experience && (
+                      <div className="flex items-center gap-2 text-sm">
+                        <Star className="h-4 w-4 text-primary-500" />
+                        <span className="text-secondary-700">
+                          {selectedApplication.candidate_profile.service_experience === 'no_experience' && 'Deneyimsiz'}
+                          {selectedApplication.candidate_profile.service_experience === 'beginner' && 'Başlangıç'}
+                          {selectedApplication.candidate_profile.service_experience === 'intermediate' && 'Orta Seviye'}
+                          {selectedApplication.candidate_profile.service_experience === 'experienced' && 'Deneyimli'}
+                          {selectedApplication.candidate_profile.service_experience === 'expert' && 'Uzman'}
+                        </span>
+                      </div>
+                    )}
+                    {selectedApplication.candidate_profile.experience_years && selectedApplication.candidate_profile.experience_years > 0 && (
+                      <div className="text-sm text-secondary-600">
+                        {selectedApplication.candidate_profile.experience_years} yıl tecrübe
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
+
+              {/* Work Experiences */}
+              {selectedApplication.experiences && selectedApplication.experiences.length > 0 && (
+                <div>
+                  <h3 className="text-sm font-medium text-secondary-900 mb-3 flex items-center gap-2">
+                    <Building className="h-4 w-4" />
+                    İş Deneyimleri
+                  </h3>
+                  <div className="space-y-3">
+                    {selectedApplication.experiences.slice(0, 3).map((exp) => (
+                      <div key={exp.id} className="p-3 bg-secondary-50 rounded-lg">
+                        <p className="font-medium text-secondary-900">{exp.position}</p>
+                        <p className="text-sm text-secondary-600">{exp.company_name}</p>
+                        <p className="text-xs text-secondary-500 mt-1">
+                          {new Date(exp.start_date).toLocaleDateString('tr-TR', { year: 'numeric', month: 'short' })}
+                          {' - '}
+                          {exp.is_current ? 'Devam ediyor' : exp.end_date ? new Date(exp.end_date).toLocaleDateString('tr-TR', { year: 'numeric', month: 'short' }) : ''}
+                        </p>
+                      </div>
+                    ))}
+                    {selectedApplication.experiences.length > 3 && (
+                      <p className="text-xs text-secondary-500">+{selectedApplication.experiences.length - 3} deneyim daha</p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Languages */}
+              {selectedApplication.languages && selectedApplication.languages.length > 0 && (
+                <div>
+                  <h3 className="text-sm font-medium text-secondary-900 mb-3 flex items-center gap-2">
+                    <Globe className="h-4 w-4" />
+                    Dil Bilgisi
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedApplication.languages.map((lang) => (
+                      <span
+                        key={lang.id}
+                        className="inline-flex items-center px-3 py-1 bg-primary-50 text-primary-700 text-sm rounded-full"
+                      >
+                        {lang.language_name}
+                        <span className="ml-1 text-xs opacity-75">
+                          ({lang.speaking_level === 'native' ? 'Ana Dil' : lang.speaking_level})
+                        </span>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Certificates */}
+              {selectedApplication.certificates && selectedApplication.certificates.length > 0 && (
+                <div>
+                  <h3 className="text-sm font-medium text-secondary-900 mb-3 flex items-center gap-2">
+                    <Award className="h-4 w-4" />
+                    Sertifikalar
+                  </h3>
+                  <div className="space-y-2">
+                    {selectedApplication.certificates.map((cert) => (
+                      <div
+                        key={cert.id}
+                        className="flex items-center justify-between p-3 bg-green-50 rounded-lg"
+                      >
+                        <div>
+                          <p className="text-sm font-medium text-green-800">{cert.certificate_name}</p>
+                          {cert.issuing_organization && (
+                            <p className="text-xs text-green-600">{cert.issuing_organization}</p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Job Info */}
               <div>

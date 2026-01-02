@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 
 export function Footer() {
   const currentYear = new Date().getFullYear()
@@ -28,7 +29,14 @@ export function Footer() {
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8">
           {/* Brand */}
           <div className="col-span-2 md:col-span-4 lg:col-span-1 mb-4 lg:mb-0">
-            <Link href="/" className="inline-block mb-4">
+            <Link href="/" className="inline-flex items-center gap-2 mb-4">
+              <Image
+                src="/android-chrome-192x192.png"
+                alt="Yeme İçme İşleri"
+                width={36}
+                height={36}
+                className="h-9 w-9 rounded-xl object-cover"
+              />
               <span className="text-xl font-bold text-white">Yeme İçme İşleri</span>
             </Link>
             <p className="text-sm text-secondary-400 leading-relaxed">

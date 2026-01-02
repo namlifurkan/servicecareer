@@ -4,7 +4,8 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { Briefcase, Menu, User, LogOut, LayoutDashboard } from 'lucide-react'
+import { Menu, User, LogOut, LayoutDashboard } from 'lucide-react'
+import Image from 'next/image'
 
 export function Header() {
   const router = useRouter()
@@ -69,9 +70,13 @@ export function Header() {
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 md:gap-2.5 group">
-            <div className="p-1.5 md:p-2 bg-primary-600 rounded-lg group-hover:bg-primary-700 transition-colors">
-              <Briefcase className="h-4 w-4 md:h-5 md:w-5 text-white" />
-            </div>
+            <Image
+              src="/android-chrome-192x192.png"
+              alt="Yeme İçme İşleri"
+              width={40}
+              height={40}
+              className="h-8 w-8 md:h-10 md:w-10 rounded-xl object-cover"
+            />
             <span className="text-lg md:text-xl font-semibold text-secondary-900">Yeme İçme İşleri</span>
           </Link>
 

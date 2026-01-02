@@ -595,6 +595,15 @@ export default async function HomePage() {
           </div>
         </section>
 
+        {/* External Jobs - Partner Sitelerden İlanlar */}
+        {externalJobs && externalJobs.length > 0 && (
+          <div className="bg-white border-b border-secondary-200">
+            <div className="container mx-auto px-4 md:px-6 pb-12 md:pb-16">
+              <ExternalJobsSection jobs={externalJobs} initialLimit={6} />
+            </div>
+          </div>
+        )}
+
         {/* Popüler Kategoriler */}
         <section className="bg-white border-b border-secondary-200">
           <div className="container mx-auto px-4 md:px-6 py-12 md:py-16">

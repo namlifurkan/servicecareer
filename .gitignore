@@ -62,3 +62,20 @@ CLAUDE.md
 QUICKSTART.md
 PROJECT_ROADMAP.md
 .claude/
+
+# Seed data with passwords (SECURITY RISK)
+supabase/seed*.sql
+supabase/run*.sql
+supabase/scheme/
+
+# Local MCP configuration
+.mcp.json
+
+# Supabase local config
+supabase/config.toml
+
+# Development admin utilities (SECURITY RISK - remove in production)
+app/setup-admin/
+app/api/setup-admin/
+app/admin-reset-password/
+app/api/admin-reset-password/

@@ -70,7 +70,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     : job.title
 
   return {
-    title: `${job.title} - ${job.location_city} | ServiceCareer`,
+    title: `${job.title} - ${job.location_city} | Yeme İçme İşleri`,
     description: `${positionLabel} pozisyonu ${job.location_city} konumunda. ${job.description?.substring(0, 120)}...`,
     openGraph: {
       title: `${job.title} - ${job.location_city}`,

@@ -16,7 +16,7 @@ export function JobShareButton({ jobTitle, jobSlug }: JobShareButtonProps) {
     const shareUrl = `${window.location.origin}/ilan/${jobSlug}`
     const shareData = {
       title: jobTitle,
-      text: `${jobTitle} - ServiceCareer'da bu ilanı inceleyin!`,
+      text: `${jobTitle} - Yeme İçme İşleri'nde bu ilanı inceleyin!`,
       url: shareUrl
     }
 

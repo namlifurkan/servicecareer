@@ -6,11 +6,11 @@ import { JobListingsEnhanced } from '@/components/job-listings-enhanced'
 import { createClient } from '@/lib/supabase/server'
 
 export const metadata: Metadata = {
-  title: 'İş İlanları - Hizmet Sektörü | ServiceCareer',
+  title: 'İş İlanları - Restoran ve Kafe | Yeme İçme İşleri',
   description: 'Restoran, kafe, bar ve otel sektöründe güncel iş ilanları. Garson, aşçı, barista, kurye ve daha fazlası.',
   openGraph: {
-    title: 'İş İlanları | ServiceCareer',
-    description: 'Hizmet sektöründe güncel iş ilanları - Restoran, kafe, bar pozisyonları',
+    title: 'İş İlanları | Yeme İçme İşleri',
+    description: 'Restoran ve kafe sektöründe güncel iş ilanları - Garson, aşçı, barista pozisyonları',
   },
 }
 

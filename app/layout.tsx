@@ -7,12 +7,12 @@ const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
   title: {
-    default: 'ServiceCareer - Hizmet Sektörü İş İlanları',
-    template: '%s | ServiceCareer'
+    default: 'Yeme İçme İşleri - Restoran ve Kafe İş İlanları',
+    template: '%s | Yeme İçme İşleri'
   },
-  description: 'Hizmet sektöründe iş arayanlar ve işverenler için profesyonel platform. En güncel iş ilanlarını keşfedin.',
-  keywords: ['iş ilanları', 'hizmet sektörü', 'kariyer', 'işveren', 'iş arama', 'CRM'],
-  authors: [{ name: 'ServiceCareer' }],
+  description: 'Restoran, kafe ve otel sektöründe iş arayanlar ve işverenler için profesyonel platform. En güncel iş ilanlarını keşfedin.',
+  keywords: ['iş ilanları', 'restoran iş ilanları', 'kafe iş ilanları', 'garson ilanları', 'aşçı ilanları', 'yeme içme sektörü'],
+  authors: [{ name: 'Yeme İçme İşleri' }],
   icons: {
     icon: [
       { url: '/favicon.svg', type: 'image/svg+xml' },
@@ -26,10 +26,10 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'tr_TR',
-    url: 'https://servicecareer.com',
-    siteName: 'ServiceCareer',
-    title: 'ServiceCareer - Hizmet Sektörü İş İlanları',
-    description: 'Hizmet sektöründe iş arayanlar ve işverenler için profesyonel platform',
+    url: 'https://yemeicmeisleri.com',
+    siteName: 'Yeme İçme İşleri',
+    title: 'Yeme İçme İşleri - Restoran ve Kafe İş İlanları',
+    description: 'Restoran, kafe ve otel sektöründe iş arayanlar ve işverenler için profesyonel platform',
   },
   robots: {
     index: true,

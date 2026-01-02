@@ -40,7 +40,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: `${cityName} İş İlanları`,
     description: `${cityName} ilinde hizmet sektöründe güncel iş ilanları. ${cityName}'da iş arıyorsanız doğru yerdesiniz.`,
     openGraph: {
-      title: `${cityName} İş İlanları | ServiceCareer`,
+      title: `${cityName} İş İlanları | Yeme İçme İşleri`,
       description: `${cityName} ilinde güncel iş ilanları`,
     },
     alternates: {
@@ -284,7 +284,7 @@ export default async function CityJobListingsPage({ params }: Props) {
           <div className="text-secondary-700">
             <p>
               {cityName} ilinde hizmet sektöründe kariyer arayanlar için en güncel iş ilanları.
-              ServiceCareer platformu üzerinden {cityName}&apos;da yayınlanan tüm iş fırsatlarını
+              Yeme İçme İşleri platformu üzerinden {cityName}&apos;da yayınlanan tüm iş fırsatlarını
               inceleyebilir, size uygun pozisyonlara başvurabilirsiniz.
             </p>
           </div>

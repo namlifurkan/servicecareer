@@ -64,7 +64,7 @@ export default function EmployerRegisterPage() {
           {/* Info Card */}
           <div className="mt-6 bg-primary-50 border border-primary-200 rounded-xl p-4">
             <h3 className="text-sm font-medium text-primary-900 mb-2">
-              Neden ServiceCareer?
+              Neden Yeme İçme İşleri?
             </h3>
             <ul className="space-y-1 text-sm text-primary-700">
               <li>• Hizmet sektörüne özel platform</li>

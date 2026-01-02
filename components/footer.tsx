@@ -29,7 +29,7 @@ export function Footer() {
           {/* Brand */}
           <div className="col-span-2 md:col-span-4 lg:col-span-1 mb-4 lg:mb-0">
             <Link href="/" className="inline-block mb-4">
-              <span className="text-xl font-bold text-white">ServiceCareer</span>
+              <span className="text-xl font-bold text-white">Yeme İçme İşleri</span>
             </Link>
             <p className="text-sm text-secondary-400 leading-relaxed">
               Restoran, kafe ve otel sektöründe iş arayanlar ile işverenleri buluşturan platform.
@@ -114,20 +114,9 @@ export function Footer() {
       {/* Bottom Bar */}
       <div className="border-t border-secondary-800">
         <div className="container mx-auto px-4 py-5">
-          <div className="flex flex-col sm:flex-row justify-between items-center gap-3 text-sm text-secondary-500">
-            <p>© {currentYear} ServiceCareer</p>
-            <div className="flex items-center gap-4">
-              <Link href="/gizlilik" className="hover:text-secondary-300 transition-colors">
-                Gizlilik
-              </Link>
-              <Link href="/kullanim-kosullari" className="hover:text-secondary-300 transition-colors">
-                Kullanım Koşulları
-              </Link>
-              <Link href="/iletisim" className="hover:text-secondary-300 transition-colors">
-                İletişim
-              </Link>
-            </div>
-          </div>
+          <p className="text-sm text-secondary-500 text-center">
+            © {currentYear} Yeme İçme İşleri
+          </p>
         </div>
       </div>
     </footer>

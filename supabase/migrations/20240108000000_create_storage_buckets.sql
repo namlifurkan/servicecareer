@@ -1,4 +1,4 @@
--- Create Storage Buckets for ServiceCareer
+-- Create Storage Buckets for Yeme İçme İşleri
 -- Run this in Supabase Dashboard SQL Editor
 
 -- =============================================

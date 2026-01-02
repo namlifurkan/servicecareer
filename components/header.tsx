@@ -72,7 +72,7 @@ export function Header() {
             <div className="p-1.5 md:p-2 bg-primary-600 rounded-lg group-hover:bg-primary-700 transition-colors">
               <Briefcase className="h-4 w-4 md:h-5 md:w-5 text-white" />
             </div>
-            <span className="text-lg md:text-xl font-semibold text-secondary-900">ServiceCareer</span>
+            <span className="text-lg md:text-xl font-semibold text-secondary-900">Yeme İçme İşleri</span>
           </Link>
 
           <div className="flex-1"></div>

@@ -1,4 +1,4 @@
--- ServiceCareer Database Schema
+-- Yeme İçme İşleri Database Schema
 -- Hizmet Sektörü İş İlanları ve CRM Platformu
 
 -- Enable UUID extension

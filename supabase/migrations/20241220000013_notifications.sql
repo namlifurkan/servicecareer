@@ -141,7 +141,7 @@ INSERT INTO notification_templates (type, title_template, message_template, emai
     ('profile_viewed', 'Profil Görüntüleme', '{{company_name}} profilinizi inceledi.', NULL, '{in_app}'),
     ('certificate_expiring', 'Sertifika Süresi Doluyor', '{{certificate_name}} sertifikanızın süresi {{days}} gün içinde doluyor.', 'Sertifika Yenileme Hatırlatması', '{in_app,email}'),
     ('reference_received', 'Referans Yanıtı', '{{referee_name}} referans talebinize yanıt verdi.', 'Referans Yanıtı Geldi', '{in_app,email,push}'),
-    ('welcome', 'Hoş Geldiniz', 'ServiceCareer''a hoş geldiniz! Profilinizi tamamlayarak başlayın.', 'ServiceCareer''a Hoş Geldiniz', '{in_app,email}')
+    ('welcome', 'Hoş Geldiniz', 'Yeme İçme İşleri''ne hoş geldiniz! Profilinizi tamamlayarak başlayın.', 'Yeme İçme İşleri''ne Hoş Geldiniz', '{in_app,email}')
 ON CONFLICT (type) DO NOTHING;
 
 -- Okunmamış bildirim sayısı view'ı

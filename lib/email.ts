@@ -17,7 +17,7 @@ function getResendClient(): Resend {
 // Email sender configuration
 // NOTE: This email needs domain verification in Resend dashboard
 // For development, Resend provides a test domain: onboarding@resend.dev
-const FROM_EMAIL = 'ServiceCareer <noreply@servicecareer.com>';
+const FROM_EMAIL = 'Yeme İçme İşleri <noreply@yemeicmeisleri.com>';
 
 /**
  * Email service response type
@@ -48,7 +48,7 @@ export async function sendWelcomeEmail(
     const { data, error } = await getResendClient().emails.send({
       from: FROM_EMAIL,
       to: [to],
-      subject: 'ServiceCareer\'e Hoş Geldiniz!',
+      subject: 'Yeme İçme İşleri\'ne Hoş Geldiniz!',
       react: WelcomeEmail({ name }),
     });
 

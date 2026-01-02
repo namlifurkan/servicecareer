@@ -8,11 +8,11 @@ const nextConfig = {
         hostname: '**.supabase.co',
       },
     ],
-    unoptimized: true, // Required for static export
+    // Vercel deployment - image optimization aktif
+    formats: ['image/avif', 'image/webp'],
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256],
   },
-  // Cloudflare Pages configuration
-  // Note: Commented out for development. Enable for static deployment
-  // output: 'export',
   trailingSlash: false,
 }
 

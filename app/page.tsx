@@ -77,129 +77,173 @@ const popularPositions: Array<{
 export default async function HomePage() {
   const supabase = await createClient()
 
-  // Son ilanları getir - hizmet sektörü alanlarıyla birlikte
-  const { data: recentJobs } = await supabase
-    .from('jobs')
-    .select(`
-      id,
-      title,
-      slug,
-      location_city,
-      work_type,
-      published_at,
-      position_type,
-      venue_type,
-      is_urgent,
-      salary_min,
-      salary_max,
-      show_salary,
-      tip_policy,
-      meal_policy,
-      benefits,
-      companies (
+  // TÜM SORGULARI PARALEL ÇALIŞTIR - Performans optimizasyonu
+  const [
+    recentJobsResult,
+    urgentJobsResult,
+    totalJobsResult,
+    totalCompaniesResult,
+    totalCandidatesResult,
+    urgentJobsCountResult,
+    categoriesResult,
+    citiesResult
+  ] = await Promise.all([
+    // Son ilanları getir
+    supabase
+      .from('jobs')
+      .select(`
+        id,
+        title,
+        slug,
+        location_city,
+        work_type,
+        published_at,
+        position_type,
+        venue_type,
+        is_urgent,
+        salary_min,
+        salary_max,
+        show_salary,
+        tip_policy,
+        meal_policy,
+        benefits,
+        companies (
+          name,
+          logo_url
+        )
+      `)
+      .eq('status', 'active')
+      .not('published_at', 'is', null)
+      .order('is_urgent', { ascending: false })
+      .order('published_at', { ascending: false })
+      .limit(12),
+
+    // Acil ilanları getir
+    supabase
+      .from('jobs')
+      .select(`
+        id,
+        title,
+        slug,
+        location_city,
+        position_type,
+        salary_min,
+        salary_max,
+        show_salary,
+        companies (name, logo_url)
+      `)
+      .eq('status', 'active')
+      .eq('is_urgent', true)
+      .not('published_at', 'is', null)
+      .order('published_at', { ascending: false })
+      .limit(6),
+
+    // Platform istatistikleri - paralel
+    supabase
+      .from('jobs')
+      .select('id', { count: 'exact', head: true })
+      .eq('status', 'active'),
+
+    supabase
+      .from('companies')
+      .select('id', { count: 'exact', head: true })
+      .eq('is_active', true),
+
+    supabase
+      .from('profiles')
+      .select('id', { count: 'exact', head: true })
+      .eq('role', 'candidate'),
+
+    supabase
+      .from('jobs')
+      .select('id', { count: 'exact', head: true })
+      .eq('status', 'active')
+      .eq('is_urgent', true),
+
+    // Kategorileri getir
+    supabase
+      .from('categories')
+      .select(`
+        id,
         name,
-        logo_url
-      )
-    `)
-    .eq('status', 'active')
-    .not('published_at', 'is', null)
-    .order('is_urgent', { ascending: false })
-    .order('published_at', { ascending: false })
-    .limit(12)
+        slug,
+        icon
+      `)
+      .eq('is_active', true)
+      .is('parent_id', null)
+      .order('display_order', { ascending: true })
+      .limit(8),
 
-  // Acil ilanları getir
-  const { data: urgentJobs } = await supabase
-    .from('jobs')
-    .select(`
-      id,
-      title,
-      slug,
-      location_city,
-      position_type,
-      salary_min,
-      salary_max,
-      show_salary,
-      companies (name, logo_url)
-    `)
-    .eq('status', 'active')
-    .eq('is_urgent', true)
-    .not('published_at', 'is', null)
-    .order('published_at', { ascending: false })
-    .limit(6)
+    // Popüler şehirleri getir - tek sorgu ile
+    supabase
+      .from('cities')
+      .select('id, name, slug')
+      .in('name', ['İstanbul', 'Ankara', 'İzmir', 'Bursa', 'Antalya', 'Adana'])
+  ])
 
-  // Platform istatistikleri
-  const { count: totalJobs } = await supabase
-    .from('jobs')
-    .select('id', { count: 'exact', head: true })
-    .eq('status', 'active')
+  // Sonuçları çıkar
+  const recentJobs = recentJobsResult.data
+  const urgentJobs = urgentJobsResult.data
+  const totalJobs = totalJobsResult.count
+  const totalCompanies = totalCompaniesResult.count
+  const totalCandidates = totalCandidatesResult.count
+  const urgentJobsCount = urgentJobsCountResult.count
+  const categories = categoriesResult.data
+  const cities = citiesResult.data
 
-  const { count: totalCompanies } = await supabase
-    .from('companies')
-    .select('id', { count: 'exact', head: true })
-    .eq('is_active', true)
+  // Kategori ve şehir job count'larını paralel getir (N+1 optimizasyonu)
+  const categoryIds = (categories || []).map(c => c.id)
+  const cityIds = (cities || []).map(c => c.id)
 
-  const { count: totalCandidates } = await supabase
-    .from('profiles')
-    .select('id', { count: 'exact', head: true })
-    .eq('role', 'candidate')
+  const [categoryCountsResult, cityCountsResult] = await Promise.all([
+    categoryIds.length > 0
+      ? supabase
+          .from('jobs')
+          .select('category_id')
+          .eq('status', 'active')
+          .in('category_id', categoryIds)
+      : Promise.resolve({ data: [] }),
 
-  const { count: urgentJobsCount } = await supabase
-    .from('jobs')
-    .select('id', { count: 'exact', head: true })
-    .eq('status', 'active')
-    .eq('is_urgent', true)
+    cityIds.length > 0
+      ? supabase
+          .from('jobs')
+          .select('city_id')
+          .eq('status', 'active')
+          .in('city_id', cityIds)
+      : Promise.resolve({ data: [] })
+  ])
 
-  // Kategorileri ve ilan sayılarını getir
-  const { data: categories } = await supabase
-    .from('categories')
-    .select(`
-      id,
-      name,
-      slug,
-      icon
-    `)
-    .eq('is_active', true)
-    .is('parent_id', null)
-    .order('display_order', { ascending: true })
-    .limit(8)
+  // Job count'ları hesapla
+  const categoryJobCounts: Record<string, number> = {}
+  const cityJobCounts: Record<string, number> = {}
 
-  // Her kategori için ilan sayısını al
-  const categoriesWithCount = await Promise.all(
-    (categories || []).map(async (category) => {
-      const { count } = await supabase
-        .from('jobs')
-        .select('id', { count: 'exact', head: true })
-        .eq('category_id', category.id)
-        .eq('status', 'active')
-
-      return { ...category, jobCount: count || 0 }
+  if (categoryCountsResult.data) {
+    categoryCountsResult.data.forEach((job: any) => {
+      if (job.category_id) {
+        categoryJobCounts[job.category_id] = (categoryJobCounts[job.category_id] || 0) + 1
+      }
     })
-  )
+  }
 
-  // Popüler şehirleri ve ilan sayılarını getir
-  const popularCityNames = ['İstanbul', 'Ankara', 'İzmir', 'Bursa', 'Antalya', 'Adana']
-
-  const citiesWithJobs = await Promise.all(
-    popularCityNames.map(async (cityName) => {
-      const { data: city } = await supabase
-        .from('cities')
-        .select('id, name, slug')
-        .eq('name', cityName)
-        .single()
-
-      if (!city) return null
-
-      const { count } = await supabase
-        .from('jobs')
-        .select('id', { count: 'exact', head: true })
-        .eq('city_id', city.id)
-        .eq('status', 'active')
-
-      return { ...city, jobCount: count || 0 }
+  if (cityCountsResult.data) {
+    cityCountsResult.data.forEach((job: any) => {
+      if (job.city_id) {
+        cityJobCounts[job.city_id] = (cityJobCounts[job.city_id] || 0) + 1
+      }
     })
-  )
+  }
 
-  const topCities = citiesWithJobs.filter((city) => city !== null)
+  // Kategorileri count ile birleştir
+  const categoriesWithCount = (categories || []).map(category => ({
+    ...category,
+    jobCount: categoryJobCounts[category.id] || 0
+  }))
+
+  // Şehirleri count ile birleştir
+  const topCities = (cities || []).map(city => ({
+    ...city,
+    jobCount: cityJobCounts[city.id] || 0
+  }))
 
   return (
     <>

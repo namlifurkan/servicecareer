@@ -37,6 +37,8 @@ import {
 } from 'lucide-react'
 import { formatRelativeTime } from '@/lib/utils'
 import { JOB_POSITION_LABELS, VENUE_TYPE_LABELS, type JobPositionType, type VenueType } from '@/lib/types/service-industry'
+import { ExternalJobsSection } from '@/components/external-jobs-section'
+import { ExternalJob } from '@/lib/types/external-job'
 
 export const metadata: Metadata = {
   title: 'Ana Sayfa - Hizmet Sektörü İş İlanları',
@@ -90,7 +92,8 @@ export default async function HomePage() {
     totalCandidatesResult,
     urgentJobsCountResult,
     categoriesResult,
-    citiesResult
+    citiesResult,
+    externalJobsResult
   ] = await Promise.all([
     // Son ilanları getir
     supabase
@@ -182,7 +185,15 @@ export default async function HomePage() {
     supabase
       .from('cities')
       .select('id, name, slug')
-      .in('name', ['İstanbul', 'Ankara', 'İzmir', 'Bursa', 'Antalya', 'Adana'])
+      .in('name', ['İstanbul', 'Ankara', 'İzmir', 'Bursa', 'Antalya', 'Adana']),
+
+    // External jobs (partner sitelerden)
+    supabase
+      .from('external_jobs')
+      .select('*')
+      .eq('is_active', true)
+      .order('created_at', { ascending: false })
+      .limit(6)
   ])
 
   // Sonuçları çıkar
@@ -194,6 +205,7 @@ export default async function HomePage() {
   const urgentJobsCount = urgentJobsCountResult.count
   const categories = categoriesResult.data
   const cities = citiesResult.data
+  const externalJobs = externalJobsResult.data as ExternalJob[] | null
 
   // Kategori ve şehir job count'larını paralel getir (N+1 optimizasyonu)
   const categoryIds = (categories || []).map(c => c.id)

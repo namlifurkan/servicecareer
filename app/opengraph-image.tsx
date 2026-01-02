@@ -2,7 +2,7 @@ import { ImageResponse } from 'next/og'
 
 export const runtime = 'edge'
 
-export const alt = 'Yeme İçme İşleri - Restoran ve Kafe İş İlanları'
+export const alt = 'Yeme İçme İşi - Restoran ve Kafe İş İlanları'
 export const size = {
   width: 1200,
   height: 630,
@@ -73,7 +73,7 @@ export default async function Image() {
               textShadow: '0 2px 10px rgba(0,0,0,0.2)',
             }}
           >
-            Yeme İçme İşleri
+            Yeme İçme İşi
           </h1>
           <p
             style={{
@@ -125,7 +125,7 @@ export default async function Image() {
             fontSize: 24,
           }}
         >
-          <span>yemeicmeisleri.com</span>
+          <span>yemeicmeisi.com</span>
         </div>
       </div>
     ),

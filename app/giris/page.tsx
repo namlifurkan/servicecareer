@@ -6,7 +6,7 @@ import { LoginForm } from '@/components/auth/login-form'
 
 export const metadata: Metadata = {
   title: 'Giriş Yap',
-  description: 'Yeme İçme İşleri hesabınıza giriş yapın',
+  description: 'Yeme İçme İşi hesabınıza giriş yapın',
 }
 
 export default function LoginPage() {

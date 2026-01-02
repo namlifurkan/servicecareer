@@ -6,7 +6,7 @@ import { RegisterForm } from '@/components/auth/register-form'
 
 export const metadata: Metadata = {
   title: 'Kayıt Ol',
-  description: 'Yeme İçme İşleri hesabı oluşturun',
+  description: 'Yeme İçme İşi hesabı oluşturun',
 }
 
 export default function RegisterPage() {

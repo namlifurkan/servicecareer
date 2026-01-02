@@ -7,7 +7,7 @@ import { Heart, MapPin, Building2, Clock, Briefcase } from 'lucide-react'
 import { formatRelativeTime } from '@/lib/utils'
 
 export const metadata = {
-  title: 'Favorilerim | Yeme İçme İşleri',
+  title: 'Favorilerim | Yeme İçme İşi',
   description: 'Kaydettiğiniz iş ilanları'
 }
 

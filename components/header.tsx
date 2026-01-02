@@ -72,12 +72,12 @@ export function Header() {
           <Link href="/" className="flex items-center gap-2 md:gap-2.5 group">
             <Image
               src="/android-chrome-192x192.png"
-              alt="Yeme İçme İşleri"
+              alt="Yeme İçme İşi"
               width={40}
               height={40}
               className="h-8 w-8 md:h-10 md:w-10 rounded-xl object-cover"
             />
-            <span className="text-lg md:text-xl font-semibold text-secondary-900">Yeme İçme İşleri</span>
+            <span className="text-lg md:text-xl font-semibold text-secondary-900">Yeme İçme İşi</span>
           </Link>
 
           <div className="flex-1"></div>

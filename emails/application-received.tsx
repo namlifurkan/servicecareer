@@ -78,7 +78,7 @@ export default function ApplicationReceivedEmail({
 
             <Text style={footer}>
               Başarılar dileriz,<br />
-              Yeme İçme İşleri Ekibi
+              Yeme İçme İşi Ekibi
             </Text>
           </Section>
         </Container>

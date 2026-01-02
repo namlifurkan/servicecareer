@@ -73,7 +73,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     : job.title
 
   return {
-    title: `${job.title} - ${job.location_city} | Yeme İçme İşleri`,
+    title: `${job.title} - ${job.location_city} | Yeme İçme İşi`,
     description: `${positionLabel} pozisyonu ${job.location_city} konumunda. ${job.description?.substring(0, 120)}...`,
     openGraph: {
       title: `${job.title} - ${job.location_city}`,
@@ -114,7 +114,7 @@ function getEmploymentType(workType: string | null): string {
 
 // Generate JobPosting schema
 function generateJobPostingSchema(job: any, slug: string) {
-  const baseUrl = 'https://yemeicmeisleri.com'
+  const baseUrl = 'https://yemeicmeisi.com'
 
   const schema: any = {
     '@context': 'https://schema.org',
@@ -133,7 +133,7 @@ function generateJobPostingSchema(job: any, slug: string) {
     },
     hiringOrganization: {
       '@type': 'Organization',
-      name: job.companies?.name || 'Yeme İçme İşleri',
+      name: job.companies?.name || 'Yeme İçme İşi',
       logo: job.companies?.logo_url || `${baseUrl}/android-chrome-512x512.png`,
     },
     url: `${baseUrl}/ilan/${slug}`,
@@ -163,7 +163,7 @@ function generateJobPostingSchema(job: any, slug: string) {
 
 // Generate BreadcrumbList schema
 function generateBreadcrumbSchema(job: any, slug: string) {
-  const baseUrl = 'https://yemeicmeisleri.com'
+  const baseUrl = 'https://yemeicmeisi.com'
 
   const items = [
     {

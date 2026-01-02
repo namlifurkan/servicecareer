@@ -186,7 +186,7 @@ export default function EmailPreviewClient() {
                 {activeTab === 'welcome' && (
                   <>
                     <p><strong>Dosya:</strong> /emails/welcome.tsx</p>
-                    <p><strong>Konu:</strong> Yeme İçme İşleri&apos;ne Hoş Geldiniz!</p>
+                    <p><strong>Konu:</strong> Yeme İçme İşi&apos;ne Hoş Geldiniz!</p>
                     <p><strong>Kullanım:</strong> Yeni kullanıcı kaydı sonrası</p>
                     <p><strong>Test Verisi:</strong> name=&quot;Ali Yılmaz&quot;</p>
                   </>

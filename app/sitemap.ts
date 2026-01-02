@@ -19,7 +19,7 @@ const cityList = [
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const supabase = await createClient()
-  const baseUrl = 'https://yemeicmeisleri.com'
+  const baseUrl = 'https://yemeicmeisi.com'
 
   // Aktif iş ilanlarını getir
   const { data: jobs } = await supabase

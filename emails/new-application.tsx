@@ -94,7 +94,7 @@ export default function NewApplicationEmail({
 
             <Text style={footer}>
               İyi çalışmalar,<br />
-              Yeme İçme İşleri Ekibi
+              Yeme İçme İşi Ekibi
             </Text>
           </Section>
         </Container>

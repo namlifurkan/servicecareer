@@ -8,7 +8,7 @@ export function buildExternalJobUrl(job: ExternalJob): string {
     const url = new URL(job.source_url);
 
     // Add UTM parameters
-    url.searchParams.set('utm_source', job.utm_source || 'yemeicmeisleri');
+    url.searchParams.set('utm_source', job.utm_source || 'yemeicmeisi');
     url.searchParams.set('utm_medium', job.utm_medium || 'referral');
 
     if (job.utm_campaign) {
@@ -22,7 +22,7 @@ export function buildExternalJobUrl(job: ExternalJob): string {
   } catch {
     // If URL parsing fails, return original URL with basic params
     const separator = job.source_url.includes('?') ? '&' : '?';
-    return `${job.source_url}${separator}utm_source=${job.utm_source || 'yemeicmeisleri'}&utm_medium=${job.utm_medium || 'referral'}`;
+    return `${job.source_url}${separator}utm_source=${job.utm_source || 'yemeicmeisi'}&utm_medium=${job.utm_medium || 'referral'}`;
   }
 }
 

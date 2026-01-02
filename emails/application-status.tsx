@@ -172,7 +172,7 @@ export default function ApplicationStatusEmail({
 
             <Text style={footer}>
               {status === 'approved' ? 'Başarılar dileriz,' : 'İyi günler dileriz,'}<br />
-              Yeme İçme İşleri Ekibi
+              Yeme İçme İşi Ekibi
             </Text>
           </Section>
         </Container>

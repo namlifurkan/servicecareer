@@ -21,14 +21,14 @@ export default function WelcomeEmail({ name }: WelcomeEmailProps) {
       <Body style={main}>
         <Container style={container}>
           <Section style={header}>
-            <Heading style={h1}>Yeme İçme İşleri'ne Hoş Geldiniz!</Heading>
+            <Heading style={h1}>Yeme İçme İşi'ne Hoş Geldiniz!</Heading>
           </Section>
 
           <Section style={content}>
             <Text style={greeting}>Merhaba {name},</Text>
 
             <Text style={paragraph}>
-              Yeme İçme İşleri'ne katıldığınız için teşekkür ederiz. Türkiye'nin önde gelen restoran ve kafe sektörü iş platformuna hoş geldiniz.
+              Yeme İçme İşi'ne katıldığınız için teşekkür ederiz. Türkiye'nin önde gelen restoran ve kafe sektörü iş platformuna hoş geldiniz.
             </Text>
 
             <Text style={paragraph}>
@@ -56,7 +56,7 @@ export default function WelcomeEmail({ name }: WelcomeEmailProps) {
 
             <Text style={footer}>
               İyi günler dileriz,<br />
-              Yeme İçme İşleri Ekibi
+              Yeme İçme İşi Ekibi
             </Text>
           </Section>
         </Container>

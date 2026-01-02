@@ -32,12 +32,12 @@ export function Footer() {
             <Link href="/" className="inline-flex items-center gap-2 mb-4">
               <Image
                 src="/android-chrome-192x192.png"
-                alt="Yeme İçme İşleri"
+                alt="Yeme İçme İşi"
                 width={36}
                 height={36}
                 className="h-9 w-9 rounded-xl object-cover"
               />
-              <span className="text-xl font-bold text-white">Yeme İçme İşleri</span>
+              <span className="text-xl font-bold text-white">Yeme İçme İşi</span>
             </Link>
             <p className="text-sm text-secondary-400 leading-relaxed">
               Restoran, kafe ve otel sektöründe iş arayanlar ile işverenleri buluşturan platform.
@@ -123,7 +123,7 @@ export function Footer() {
       <div className="border-t border-secondary-800">
         <div className="container mx-auto px-4 py-5">
           <p className="text-sm text-secondary-500 text-center">
-            © {currentYear} Yeme İçme İşleri
+            © {currentYear} Yeme İçme İşi
           </p>
         </div>
       </div>

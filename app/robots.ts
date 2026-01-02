@@ -18,6 +18,6 @@ export default function robots(): MetadataRoute.Robots {
         ],
       },
     ],
-    sitemap: 'https://yemeicmeisleri.com/sitemap.xml',
+    sitemap: 'https://yemeicmeisi.com/sitemap.xml',
   }
 }

@@ -41,7 +41,7 @@ import { ExternalJobsSection } from '@/components/external-jobs-section'
 import { ExternalJob } from '@/lib/types/external-job'
 
 export const metadata: Metadata = {
-  title: 'Ana Sayfa - Hizmet Sektörü İş İlanları',
+  title: 'Ana Sayfa - Yeme İçme İşi',
   description: 'Restoran, kafe, bar ve otel sektöründe kariyer fırsatları. Garson, aşçı, barista, kurye ve daha fazlası. Binlerce iş ilanı arasından size en uygun pozisyonu bulun.',
   alternates: {
     canonical: '/',

@@ -8,10 +8,10 @@ import { createClient } from '@/lib/supabase/server'
 import { ExternalJob } from '@/lib/types/external-job'
 
 export const metadata: Metadata = {
-  title: 'İş İlanları - Restoran ve Kafe | Yeme İçme İşleri',
+  title: 'İş İlanları - Restoran ve Kafe | Yeme İçme İşi',
   description: 'Restoran, kafe, bar ve otel sektöründe güncel iş ilanları. Garson, aşçı, barista, kurye ve daha fazlası.',
   openGraph: {
-    title: 'İş İlanları | Yeme İçme İşleri',
+    title: 'İş İlanları | Yeme İçme İşi',
     description: 'Restoran ve kafe sektöründe güncel iş ilanları - Garson, aşçı, barista pozisyonları',
   },
   alternates: {

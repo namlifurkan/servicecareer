@@ -3,7 +3,9 @@ import Link from 'next/link'
 import { Header } from '@/components/header'
 import { Footer } from '@/components/footer'
 import { JobListingsEnhanced } from '@/components/job-listings-enhanced'
+import { ExternalJobsSection } from '@/components/external-jobs-section'
 import { createClient } from '@/lib/supabase/server'
+import { ExternalJob } from '@/lib/types/external-job'
 import { MapPin, AlertCircle, Briefcase } from 'lucide-react'
 
 // Popüler şehirler için statik sayfa oluşturma - Footer'daki tüm şehirler
@@ -132,6 +134,15 @@ export default async function CityJobListingsPage({ params }: Props) {
     .order('is_urgent', { ascending: false })
     .order('published_at', { ascending: false })
     .limit(50)
+
+  // Fetch external jobs for this city
+  const { data: externalJobs } = await supabase
+    .from('external_jobs')
+    .select('*')
+    .eq('is_active', true)
+    .ilike('location_city', `%${cityName}%`)
+    .order('created_at', { ascending: false })
+    .limit(20)
 
   // Transform jobs to ensure companies and categories are single objects
   const transformedJobs = jobs?.map(job => ({
@@ -274,6 +285,11 @@ export default async function CityJobListingsPage({ params }: Props) {
               </div>
             </div>
           </div>
+        )}
+
+        {/* External Jobs from Partner Sites */}
+        {externalJobs && externalJobs.length > 0 && (
+          <ExternalJobsSection jobs={externalJobs as ExternalJob[]} cityName={cityName} />
         )}
 
         {/* SEO Text Content */}

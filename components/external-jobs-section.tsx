@@ -8,11 +8,13 @@ import { ExternalJobCard } from './external-job-card';
 interface ExternalJobsSectionProps {
   jobs: ExternalJob[];
   initialLimit?: number;
+  cityName?: string;
 }
 
 export function ExternalJobsSection({
   jobs,
   initialLimit = 6,
+  cityName,
 }: ExternalJobsSectionProps) {
   const [selectedSource, setSelectedSource] = useState<ExternalJobSource | 'all'>('all');
   const [showAll, setShowAll] = useState(false);
@@ -47,10 +49,13 @@ export function ExternalJobsSection({
         <div>
           <h2 className="text-xl font-bold text-secondary-900 flex items-center gap-2">
             <ExternalLink className="h-5 w-5 text-primary-600" />
-            Diğer Sitelerden İlanlar
+            {cityName ? `${cityName} - Diğer Sitelerden İlanlar` : 'Diğer Sitelerden İlanlar'}
           </h2>
           <p className="text-sm text-secondary-500 mt-1">
-            Partner sitelerden hizmet sektörü ilanları
+            {cityName
+              ? `${cityName} ilindeki partner site ilanları`
+              : 'Partner sitelerden hizmet sektörü ilanları'
+            }
           </p>
         </div>
 

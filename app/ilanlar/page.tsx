@@ -216,7 +216,10 @@ export default async function JobListingsPage() {
               <p className="text-accent-600">İlanlar yüklenirken bir hata oluştu.</p>
             </div>
           ) : transformedJobs.length > 0 ? (
-            <JobListingsEnhanced jobs={transformedJobs} categories={categories || []} />
+            <JobListingsEnhanced
+              jobs={transformedJobs}
+              categories={categories || []}
+            />
           ) : (
             <div className="text-center py-20 bg-white rounded-2xl border border-secondary-200">
               <p className="text-lg text-secondary-600">Henüz ilan bulunmamaktadır.</p>

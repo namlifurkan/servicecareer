@@ -100,6 +100,115 @@ function formatDate(dateString: string): string {
   return date.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long' })
 }
 
+// Employment type mapping for schema.org
+function getEmploymentType(workType: string | null): string {
+  const mapping: Record<string, string> = {
+    'full_time': 'FULL_TIME',
+    'part_time': 'PART_TIME',
+    'contract': 'CONTRACTOR',
+    'freelance': 'CONTRACTOR',
+    'internship': 'INTERN',
+  }
+  return mapping[workType || ''] || 'FULL_TIME'
+}
+
+// Generate JobPosting schema
+function generateJobPostingSchema(job: any, slug: string) {
+  const baseUrl = 'https://yemeicmeisleri.com'
+
+  const schema: any = {
+    '@context': 'https://schema.org',
+    '@type': 'JobPosting',
+    title: job.title,
+    description: job.description || '',
+    datePosted: job.published_at,
+    employmentType: getEmploymentType(job.work_type),
+    jobLocation: {
+      '@type': 'Place',
+      address: {
+        '@type': 'PostalAddress',
+        addressLocality: job.location_city,
+        addressCountry: 'TR',
+      },
+    },
+    hiringOrganization: {
+      '@type': 'Organization',
+      name: job.companies?.name || 'Yeme İçme İşleri',
+      logo: job.companies?.logo_url || `${baseUrl}/android-chrome-512x512.png`,
+    },
+    url: `${baseUrl}/ilan/${slug}`,
+  }
+
+  // Add salary if available
+  if (job.show_salary && job.salary_min) {
+    schema.baseSalary = {
+      '@type': 'MonetaryAmount',
+      currency: 'TRY',
+      value: {
+        '@type': 'QuantitativeValue',
+        minValue: job.salary_min,
+        maxValue: job.salary_max || job.salary_min,
+        unitText: 'MONTH',
+      },
+    }
+  }
+
+  // Add expiration date if available
+  if (job.expires_at) {
+    schema.validThrough = job.expires_at
+  }
+
+  return schema
+}
+
+// Generate BreadcrumbList schema
+function generateBreadcrumbSchema(job: any, slug: string) {
+  const baseUrl = 'https://yemeicmeisleri.com'
+
+  const items = [
+    {
+      '@type': 'ListItem',
+      position: 1,
+      name: 'Ana Sayfa',
+      item: baseUrl,
+    },
+    {
+      '@type': 'ListItem',
+      position: 2,
+      name: 'İlanlar',
+      item: `${baseUrl}/ilanlar`,
+    },
+  ]
+
+  if (job.categories) {
+    items.push({
+      '@type': 'ListItem',
+      position: 3,
+      name: job.categories.name,
+      item: `${baseUrl}/ilanlar?category=${job.categories.slug}`,
+    })
+    items.push({
+      '@type': 'ListItem',
+      position: 4,
+      name: job.title,
+      item: `${baseUrl}/ilan/${slug}`,
+    })
+  } else {
+    items.push({
+      '@type': 'ListItem',
+      position: 3,
+      name: job.title,
+      item: `${baseUrl}/ilan/${slug}`,
+    })
+  }
+
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: items,
+  }
+}
+
 export default async function JobDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   const supabase = await createClient()
@@ -186,8 +295,26 @@ export default async function JobDetailPage({ params }: { params: Promise<{ slug
     quickBenefits.push({ icon: CheckCircle2, label: 'Sigorta', value: 'Sağlık Sigortası' })
   }
 
+  // Generate structured data
+  const jobPostingSchema = generateJobPostingSchema(job, slug)
+  const breadcrumbSchema = generateBreadcrumbSchema(job, slug)
+
   return (
     <>
+      {/* JSON-LD Structured Data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(jobPostingSchema),
+        }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(breadcrumbSchema),
+        }}
+      />
+
       <Header />
       <main className="min-h-screen bg-secondary-50">
         {/* Breadcrumb */}
@@ -237,9 +364,11 @@ export default async function JobDetailPage({ params }: { params: Promise<{ slug
                   {/* Company + Title */}
                   <div className="flex items-start gap-4 mb-4">
                     {job.companies?.logo_url ? (
-                      <img
+                      <Image
                         src={job.companies.logo_url}
-                        alt={job.companies.name}
+                        alt={`${job.companies.name} logosu`}
+                        width={56}
+                        height={56}
                         className="w-14 h-14 rounded-lg object-cover border border-secondary-100 flex-shrink-0"
                       />
                     ) : (
@@ -546,9 +675,11 @@ export default async function JobDetailPage({ params }: { params: Promise<{ slug
                 <h3 className="font-semibold text-secondary-900 mb-4">Şirket Bilgileri</h3>
                 <div className="flex items-center gap-3 mb-4">
                   {job.companies?.logo_url ? (
-                    <img
+                    <Image
                       src={job.companies.logo_url}
-                      alt={job.companies.name}
+                      alt={`${job.companies.name} logosu`}
+                      width={48}
+                      height={48}
                       className="w-12 h-12 rounded-lg object-cover border border-secondary-100"
                     />
                   ) : (
@@ -625,9 +756,11 @@ export default async function JobDetailPage({ params }: { params: Promise<{ slug
                   >
                     <div className="flex items-start gap-3 mb-3">
                       {sJob.companies?.logo_url ? (
-                        <img
+                        <Image
                           src={sJob.companies.logo_url}
-                          alt={sJob.companies.name}
+                          alt={`${sJob.companies.name} logosu`}
+                          width={40}
+                          height={40}
                           className="w-10 h-10 rounded-lg object-cover border border-secondary-100"
                         />
                       ) : (

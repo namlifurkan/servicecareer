@@ -3,6 +3,7 @@
 import { useState, useMemo, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { MapPin, Clock, Grid3x3, List, X, Building2 } from 'lucide-react'
 import { formatRelativeTime } from '@/lib/utils'
 import { MultiSelect, type MultiSelectOption } from '@/components/ui/multi-select'
@@ -391,9 +392,11 @@ export function JobListingsClient({ jobs, categories }: JobListingsClientProps) 
                 {/* Company Logo */}
                 <div className="mb-4">
                   {job.companies?.logo_url ? (
-                    <img
+                    <Image
                       src={job.companies.logo_url}
-                      alt={job.companies.name}
+                      alt={`${job.companies.name} logosu`}
+                      width={64}
+                      height={64}
                       className="w-16 h-16 rounded-lg object-cover border border-secondary-200"
                     />
                   ) : (
@@ -456,9 +459,11 @@ export function JobListingsClient({ jobs, categories }: JobListingsClientProps) 
                   {/* Company Logo */}
                   <div className="flex-shrink-0">
                     {job.companies?.logo_url ? (
-                      <img
+                      <Image
                         src={job.companies.logo_url}
-                        alt={job.companies.name}
+                        alt={`${job.companies.name} logosu`}
+                        width={80}
+                        height={80}
                         className="w-20 h-20 rounded-lg object-cover border border-secondary-200"
                       />
                     ) : (

@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { User, FileText, Briefcase, Settings, LogOut, Home } from 'lucide-react'
+import { User, FileText, Briefcase, Settings, LogOut, Home, Heart } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 
@@ -29,6 +29,7 @@ export default async function CandidateDashboardLayout({
     { name: 'Dashboard', href: '/dashboard', icon: Home },
     { name: 'Profilim', href: '/dashboard/profil', icon: User },
     { name: 'Başvurularım', href: '/dashboard/basvurularim', icon: FileText },
+    { name: 'Favorilerim', href: '/dashboard/favorilerim', icon: Heart },
     { name: 'İş Ara', href: '/ilanlar', icon: Briefcase },
   ]
 

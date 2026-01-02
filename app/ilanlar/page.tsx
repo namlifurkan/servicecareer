@@ -3,7 +3,9 @@ import Link from 'next/link'
 import { Header } from '@/components/header'
 import { Footer } from '@/components/footer'
 import { JobListingsEnhanced } from '@/components/job-listings-enhanced'
+import { ExternalJobsSection } from '@/components/external-jobs-section'
 import { createClient } from '@/lib/supabase/server'
+import { ExternalJob } from '@/lib/types/external-job'
 
 export const metadata: Metadata = {
   title: 'İş İlanları - Restoran ve Kafe | Yeme İçme İşleri',
@@ -11,6 +13,9 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'İş İlanları | Yeme İçme İşleri',
     description: 'Restoran ve kafe sektöründe güncel iş ilanları - Garson, aşçı, barista pozisyonları',
+  },
+  alternates: {
+    canonical: '/ilanlar',
   },
 }
 
@@ -49,6 +54,14 @@ export default async function JobListingsPage() {
     .select('id', { count: 'exact', head: true })
     .eq('status', 'active')
     .gte('published_at', today.toISOString())
+
+  // Fetch external jobs from partner sites
+  const { data: externalJobs } = await supabase
+    .from('external_jobs')
+    .select('*')
+    .eq('is_active', true)
+    .order('created_at', { ascending: false })
+    .limit(30)
 
   // SEO-friendly data fetching with service industry fields
   const { data: jobs, error } = await supabase
@@ -208,6 +221,11 @@ export default async function JobListingsPage() {
             <div className="text-center py-20 bg-white rounded-2xl border border-secondary-200">
               <p className="text-lg text-secondary-600">Henüz ilan bulunmamaktadır.</p>
             </div>
+          )}
+
+          {/* External Jobs from Partner Sites */}
+          {externalJobs && externalJobs.length > 0 && (
+            <ExternalJobsSection jobs={externalJobs as ExternalJob[]} />
           )}
         </div>
       </main>

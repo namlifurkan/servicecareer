@@ -11,6 +11,7 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://yemeicmeisleri.com'),
   title: {
     default: 'Yeme İçme İşleri - Restoran ve Kafe İş İlanları',
     template: '%s | Yeme İçme İşleri'
@@ -35,6 +36,20 @@ export const metadata: Metadata = {
     siteName: 'Yeme İçme İşleri',
     title: 'Yeme İçme İşleri - Restoran ve Kafe İş İlanları',
     description: 'Restoran, kafe ve otel sektöründe iş arayanlar ve işverenler için profesyonel platform',
+    images: [
+      {
+        url: '/opengraph-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'Yeme İçme İşleri - Restoran ve Kafe İş İlanları',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Yeme İçme İşleri - Restoran ve Kafe İş İlanları',
+    description: 'Restoran, kafe ve otel sektöründe iş arayanlar ve işverenler için profesyonel platform',
+    images: ['/opengraph-image.png'],
   },
   robots: {
     index: true,
@@ -47,6 +62,23 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
+  alternates: {
+    canonical: '/',
+  },
+}
+
+// Organization Schema for SEO
+const organizationSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: 'Yeme İçme İşleri',
+  url: 'https://yemeicmeisleri.com',
+  logo: 'https://yemeicmeisleri.com/android-chrome-512x512.png',
+  description: 'Türkiye\'nin restoran ve kafe iş ilanları platformu',
+  address: {
+    '@type': 'PostalAddress',
+    addressCountry: 'TR',
+  },
 }
 
 export default function RootLayout({
@@ -56,6 +88,14 @@ export default function RootLayout({
 }) {
   return (
     <html lang="tr" suppressHydrationWarning>
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(organizationSchema),
+          }}
+        />
+      </head>
       <body className={inter.className} suppressHydrationWarning>
         <Toaster position="top-right" richColors />
         {children}

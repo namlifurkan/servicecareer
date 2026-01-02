@@ -1,5 +1,6 @@
 import { Metadata } from 'next'
 import Link from 'next/link'
+import Image from 'next/image'
 import { Header } from '@/components/header'
 import { Footer } from '@/components/footer'
 import { HomeSearchForm } from '@/components/home-search-form'
@@ -40,6 +41,9 @@ import { JOB_POSITION_LABELS, VENUE_TYPE_LABELS, type JobPositionType, type Venu
 export const metadata: Metadata = {
   title: 'Ana Sayfa - Hizmet Sektörü İş İlanları',
   description: 'Restoran, kafe, bar ve otel sektöründe kariyer fırsatları. Garson, aşçı, barista, kurye ve daha fazlası. Binlerce iş ilanı arasından size en uygun pozisyonu bulun.',
+  alternates: {
+    canonical: '/',
+  },
 }
 
 // Kategori icon mapping
@@ -348,9 +352,11 @@ export default async function HomePage() {
                   >
                     <div className="flex items-start gap-3">
                       {(job.companies as any)?.logo_url ? (
-                        <img
+                        <Image
                           src={(job.companies as any).logo_url}
-                          alt=""
+                          alt={`${(job.companies as any).name || 'Şirket'} logosu`}
+                          width={40}
+                          height={40}
                           className="w-10 h-10 rounded-lg object-cover"
                         />
                       ) : (
@@ -473,9 +479,11 @@ export default async function HomePage() {
                       {/* Header: Logo + Title */}
                       <div className="flex items-start gap-3 mb-4">
                         {(job.companies as any)?.logo_url ? (
-                          <img
+                          <Image
                             src={(job.companies as any).logo_url}
-                            alt={(job.companies as any).name}
+                            alt={`${(job.companies as any).name || 'Şirket'} logosu`}
+                            width={56}
+                            height={56}
                             className="w-14 h-14 rounded-lg object-cover border border-secondary-200 flex-shrink-0"
                           />
                         ) : (

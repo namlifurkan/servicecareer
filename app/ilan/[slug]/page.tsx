@@ -1,9 +1,12 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
+import Image from 'next/image'
 import { Header } from '@/components/header'
 import { Footer } from '@/components/footer'
 import { JobDetailClient } from '@/components/job/job-detail-client'
 import { JobShareButton } from '@/components/job/job-share-button'
+import { FavoriteButton } from '@/components/job/favorite-button'
+import { checkIsFavorited } from '@/lib/favorite-actions'
 import {
   MapPin,
   Briefcase,
@@ -75,6 +78,11 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     openGraph: {
       title: `${job.title} - ${job.location_city}`,
       description: job.description?.substring(0, 160),
+      type: 'article',
+      locale: 'tr_TR',
+    },
+    alternates: {
+      canonical: `/ilan/${slug}`,
     },
   }
 }
@@ -118,6 +126,7 @@ export default async function JobDetailPage({ params }: { params: Promise<{ slug
   }
 
   let hasApplied = false
+  let isFavorited = false
   if (user) {
     const { data: application } = await supabase
       .from('applications')
@@ -126,6 +135,7 @@ export default async function JobDetailPage({ params }: { params: Promise<{ slug
       .eq('candidate_id', user.id)
       .single()
     hasApplied = !!application
+    isFavorited = await checkIsFavorited(job.id)
   }
 
   // Increment view count using RPC (bypasses RLS)
@@ -589,6 +599,13 @@ export default async function JobDetailPage({ params }: { params: Promise<{ slug
                   )}
                 </div>
               </div>
+
+              {/* Favorite */}
+              <FavoriteButton
+                jobId={job.id}
+                initialFavorited={isFavorited}
+                isLoggedIn={!!user}
+              />
 
               {/* Share */}
               <JobShareButton jobTitle={job.title} jobSlug={job.slug} />

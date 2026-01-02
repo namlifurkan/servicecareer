@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Users, Building2, Briefcase, BarChart3, Settings, LogOut } from 'lucide-react'
+import { Users, Building2, Briefcase, BarChart3, Settings, LogOut, ExternalLink } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 
@@ -30,6 +30,7 @@ export default async function AdminLayout({
     { name: 'Kullanıcılar', href: '/admin/users', icon: Users },
     { name: 'Şirketler', href: '/admin/companies', icon: Building2 },
     { name: 'İlanlar', href: '/admin/jobs', icon: Briefcase },
+    { name: 'Dış İlanlar', href: '/admin/external-jobs', icon: ExternalLink },
     { name: 'Ayarlar', href: '/admin/settings', icon: Settings },
   ]
 

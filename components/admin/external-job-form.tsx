@@ -5,13 +5,42 @@ import { useRouter } from 'next/navigation';
 import { Loader2, Link as LinkIcon } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import {
-  ExternalJobSource,
   ExternalJobInsert,
-  SOURCE_INFO,
-  EXTERNAL_JOB_POSITIONS,
-  EXTERNAL_JOB_VENUES,
+  extractDomain,
+  getDomainInfo,
 } from '@/lib/types/external-job';
-import { detectSourceFromUrl, generateCampaignName } from '@/lib/external-job-utils';
+import { generateCampaignName } from '@/lib/external-job-utils';
+
+// Position types for dropdown
+const EXTERNAL_JOB_POSITIONS = [
+  'Garson',
+  'Aşçı',
+  'Aşçı Yardımcısı',
+  'Barista',
+  'Barmen',
+  'Kasiyer',
+  'Bulaşıkçı',
+  'Komi',
+  'Şef',
+  'Mutfak Şefi',
+  'Restoran Müdürü',
+  'Cafe Müdürü',
+  'Host/Hostes',
+  'Paketçi/Kurye',
+  'Temizlik Görevlisi',
+];
+
+// Venue types for dropdown
+const EXTERNAL_JOB_VENUES = [
+  'Restoran',
+  'Cafe',
+  'Bar',
+  'Otel',
+  'Fast Food',
+  'Pastane',
+  'Catering',
+  'Yemek Fabrikası',
+];
 
 interface ExternalJobFormProps {
   initialData?: {
@@ -21,7 +50,7 @@ interface ExternalJobFormProps {
     location_city: string | null;
     location_district: string | null;
     description: string | null;
-    source_name: ExternalJobSource;
+    source_domain: string;
     source_url: string;
     position_type: string | null;
     venue_type: string | null;
@@ -75,7 +104,7 @@ export function ExternalJobForm({ initialData }: ExternalJobFormProps) {
     location_city: initialData?.location_city || '',
     location_district: initialData?.location_district || '',
     description: initialData?.description || '',
-    source_name: initialData?.source_name || ('' as ExternalJobSource | ''),
+    source_domain: initialData?.source_domain || '',
     source_url: initialData?.source_url || '',
     position_type: initialData?.position_type || '',
     venue_type: initialData?.venue_type || '',
@@ -83,13 +112,13 @@ export function ExternalJobForm({ initialData }: ExternalJobFormProps) {
     is_active: initialData?.is_active ?? true,
   });
 
-  // Auto-detect source from URL
+  // Auto-detect domain from URL
   const handleUrlChange = (url: string) => {
     setFormData((prev) => ({ ...prev, source_url: url }));
 
-    const detectedSource = detectSourceFromUrl(url);
-    if (detectedSource && !formData.source_name) {
-      setFormData((prev) => ({ ...prev, source_name: detectedSource }));
+    const domain = extractDomain(url);
+    if (domain && domain !== 'unknown') {
+      setFormData((prev) => ({ ...prev, source_domain: domain }));
     }
   };
 
@@ -126,9 +155,6 @@ export function ExternalJobForm({ initialData }: ExternalJobFormProps) {
       if (!formData.company_name.trim()) {
         throw new Error('Şirket adı gerekli');
       }
-      if (!formData.source_name) {
-        throw new Error('Kaynak site seçin');
-      }
       if (!formData.source_url.trim()) {
         throw new Error('İlan URL gerekli');
       }
@@ -140,13 +166,16 @@ export function ExternalJobForm({ initialData }: ExternalJobFormProps) {
         data: { user },
       } = await supabase.auth.getUser();
 
+      // Extract domain if not set
+      const domain = formData.source_domain || extractDomain(formData.source_url);
+
       const jobData: ExternalJobInsert = {
         title: formData.title.trim(),
         company_name: formData.company_name.trim(),
         location_city: formData.location_city || null,
         location_district: formData.location_district?.trim() || null,
         description: formData.description?.trim() || null,
-        source_name: formData.source_name as ExternalJobSource,
+        source_domain: domain,
         source_url: formData.source_url.trim(),
         position_type: formData.position_type || null,
         venue_type: formData.venue_type || null,
@@ -183,6 +212,8 @@ export function ExternalJobForm({ initialData }: ExternalJobFormProps) {
     }
   };
 
+  const domainInfo = formData.source_domain ? getDomainInfo(formData.source_domain) : null;
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {error && (
@@ -202,87 +233,60 @@ export function ExternalJobForm({ initialData }: ExternalJobFormProps) {
             type="url"
             value={formData.source_url}
             onChange={(e) => handleUrlChange(e.target.value)}
-            placeholder="https://kariyer.net/is-ilani/..."
+            placeholder="https://example.com/jobs/123"
             className="w-full pl-10 pr-4 py-2.5 bg-white border border-secondary-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
             required
           />
         </div>
-        <p className="mt-1 text-xs text-secondary-500">
-          İlan URL adresini yapıştırın, kaynak otomatik algılanır
-        </p>
+        {domainInfo && (
+          <p className="mt-2 text-sm text-secondary-500">
+            Kaynak:{' '}
+            <span className={`font-medium ${domainInfo.textColor}`}>
+              {domainInfo.name}
+            </span>
+          </p>
+        )}
       </div>
 
-      {/* Source Selection */}
+      {/* Title */}
       <div>
         <label className="block text-sm font-medium text-secondary-700 mb-2">
-          Kaynak Site <span className="text-red-500">*</span>
+          İlan Başlığı <span className="text-red-500">*</span>
         </label>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-          {(Object.keys(SOURCE_INFO) as ExternalJobSource[]).map((source) => {
-            const info = SOURCE_INFO[source];
-            return (
-              <button
-                key={source}
-                type="button"
-                onClick={() => setFormData((prev) => ({ ...prev, source_name: source }))}
-                className={`flex items-center gap-2 px-4 py-3 rounded-lg border transition-colors ${
-                  formData.source_name === source
-                    ? `${info.bgColor} ${info.textColor} border-current`
-                    : 'bg-white border-secondary-200 text-secondary-700 hover:bg-secondary-50'
-                }`}
-              >
-                <span
-                  className="w-3 h-3 rounded-full"
-                  style={{ backgroundColor: info.color }}
-                />
-                <span className="font-medium">{info.name}</span>
-              </button>
-            );
-          })}
-        </div>
+        <input
+          type="text"
+          value={formData.title}
+          onChange={(e) => setFormData((prev) => ({ ...prev, title: e.target.value }))}
+          placeholder="Garson, Aşçı, Barista..."
+          className="w-full px-4 py-2.5 bg-white border border-secondary-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+          required
+        />
       </div>
 
-      {/* Title and Company */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-secondary-700 mb-2">
-            İlan Başlığı <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="text"
-            value={formData.title}
-            onChange={(e) => setFormData((prev) => ({ ...prev, title: e.target.value }))}
-            placeholder="Örn: Garson Aranıyor"
-            className="w-full px-4 py-2.5 bg-white border border-secondary-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-            required
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-secondary-700 mb-2">
-            Şirket Adı <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="text"
-            value={formData.company_name}
-            onChange={(e) =>
-              setFormData((prev) => ({ ...prev, company_name: e.target.value }))
-            }
-            placeholder="Örn: ABC Restoran"
-            className="w-full px-4 py-2.5 bg-white border border-secondary-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-            required
-          />
-        </div>
+      {/* Company Name */}
+      <div>
+        <label className="block text-sm font-medium text-secondary-700 mb-2">
+          Şirket Adı <span className="text-red-500">*</span>
+        </label>
+        <input
+          type="text"
+          value={formData.company_name}
+          onChange={(e) => setFormData((prev) => ({ ...prev, company_name: e.target.value }))}
+          placeholder="ABC Restaurant"
+          className="w-full px-4 py-2.5 bg-white border border-secondary-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+          required
+        />
       </div>
 
       {/* Location */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-secondary-700 mb-2">Şehir</label>
+          <label className="block text-sm font-medium text-secondary-700 mb-2">
+            Şehir
+          </label>
           <select
             value={formData.location_city}
-            onChange={(e) =>
-              setFormData((prev) => ({ ...prev, location_city: e.target.value }))
-            }
+            onChange={(e) => setFormData((prev) => ({ ...prev, location_city: e.target.value }))}
             className="w-full px-4 py-2.5 bg-white border border-secondary-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           >
             <option value="">Şehir seçin</option>
@@ -295,7 +299,7 @@ export function ExternalJobForm({ initialData }: ExternalJobFormProps) {
         </div>
         <div>
           <label className="block text-sm font-medium text-secondary-700 mb-2">
-            İlçe (Opsiyonel)
+            İlçe
           </label>
           <input
             type="text"
@@ -303,17 +307,17 @@ export function ExternalJobForm({ initialData }: ExternalJobFormProps) {
             onChange={(e) =>
               setFormData((prev) => ({ ...prev, location_district: e.target.value }))
             }
-            placeholder="Örn: Kadıköy"
+            placeholder="Kadıköy, Beşiktaş..."
             className="w-full px-4 py-2.5 bg-white border border-secondary-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           />
         </div>
       </div>
 
-      {/* Position and Venue */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {/* Position and Venue Type */}
+      <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-secondary-700 mb-2">
-            Pozisyon Türü
+            Pozisyon Tipi
           </label>
           <select
             value={formData.position_type}
@@ -330,14 +334,14 @@ export function ExternalJobForm({ initialData }: ExternalJobFormProps) {
         </div>
         <div>
           <label className="block text-sm font-medium text-secondary-700 mb-2">
-            Mekan Türü
+            Mekan Tipi
           </label>
           <select
             value={formData.venue_type}
             onChange={(e) => handlePositionOrVenueChange('venue_type', e.target.value)}
             className="w-full px-4 py-2.5 bg-white border border-secondary-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           >
-            <option value="">Mekan türü seçin</option>
+            <option value="">Mekan tipi seçin</option>
             {EXTERNAL_JOB_VENUES.map((venue) => (
               <option key={venue} value={venue}>
                 {venue}
@@ -350,32 +354,31 @@ export function ExternalJobForm({ initialData }: ExternalJobFormProps) {
       {/* Description */}
       <div>
         <label className="block text-sm font-medium text-secondary-700 mb-2">
-          Kısa Açıklama (Opsiyonel)
+          Açıklama (Opsiyonel)
         </label>
         <textarea
           value={formData.description}
           onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
-          placeholder="İlan hakkında kısa bir açıklama..."
+          placeholder="İlan hakkında kısa açıklama..."
           rows={3}
-          className="w-full px-4 py-2.5 bg-white border border-secondary-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 resize-none"
+          className="w-full px-4 py-2.5 bg-white border border-secondary-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
         />
       </div>
 
       {/* UTM Campaign */}
       <div>
         <label className="block text-sm font-medium text-secondary-700 mb-2">
-          UTM Kampanya Adı (Opsiyonel)
+          UTM Campaign
         </label>
         <input
           type="text"
           value={formData.utm_campaign}
           onChange={(e) => setFormData((prev) => ({ ...prev, utm_campaign: e.target.value }))}
-          placeholder="Örn: garson-ilanlari"
+          placeholder="garson-restoran"
           className="w-full px-4 py-2.5 bg-white border border-secondary-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
         />
         <p className="mt-1 text-xs text-secondary-500">
-          Tracking için kullanılır. Boş bırakırsanız pozisyon ve mekan türünden otomatik
-          oluşturulur.
+          Otomatik oluşturulur, değiştirmek isterseniz yazabilirsiniz.
         </p>
       </div>
 
@@ -386,29 +389,29 @@ export function ExternalJobForm({ initialData }: ExternalJobFormProps) {
           id="is_active"
           checked={formData.is_active}
           onChange={(e) => setFormData((prev) => ({ ...prev, is_active: e.target.checked }))}
-          className="w-4 h-4 text-primary-600 border-secondary-300 rounded focus:ring-primary-500"
+          className="w-4 h-4 rounded border-secondary-300 text-primary-600 focus:ring-primary-500"
         />
         <label htmlFor="is_active" className="text-sm text-secondary-700">
-          İlan aktif (kullanıcılara gösterilsin)
+          İlan aktif olarak yayınlansın
         </label>
       </div>
 
-      {/* Actions */}
-      <div className="flex items-center justify-end gap-3 pt-4 border-t border-secondary-100">
-        <button
-          type="button"
-          onClick={() => router.back()}
-          className="px-4 py-2.5 text-secondary-700 hover:bg-secondary-50 rounded-lg font-medium transition-colors"
-        >
-          İptal
-        </button>
+      {/* Submit */}
+      <div className="flex gap-4">
         <button
           type="submit"
           disabled={isSubmitting}
-          className="inline-flex items-center gap-2 px-6 py-2.5 bg-primary-600 hover:bg-primary-700 disabled:bg-primary-400 text-white font-medium rounded-lg transition-colors"
+          className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-colors"
         >
           {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
-          {initialData ? 'Güncelle' : 'İlan Ekle'}
+          {initialData ? 'Güncelle' : 'Ekle'}
+        </button>
+        <button
+          type="button"
+          onClick={() => router.back()}
+          className="px-6 py-3 border border-secondary-200 text-secondary-700 rounded-lg hover:bg-secondary-50 transition-colors font-medium"
+        >
+          İptal
         </button>
       </div>
     </form>

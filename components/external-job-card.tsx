@@ -1,7 +1,7 @@
 'use client';
 
 import { MapPin, Building2, ExternalLink } from 'lucide-react';
-import { ExternalJob, SOURCE_INFO } from '@/lib/types/external-job';
+import { ExternalJob, getDomainInfo } from '@/lib/types/external-job';
 import { buildExternalJobUrl } from '@/lib/external-job-utils';
 
 interface ExternalJobCardProps {
@@ -10,7 +10,7 @@ interface ExternalJobCardProps {
 }
 
 export function ExternalJobCard({ job, onClickTrack }: ExternalJobCardProps) {
-  const sourceInfo = SOURCE_INFO[job.source_name];
+  const domainInfo = getDomainInfo(job.source_domain);
   const externalUrl = buildExternalJobUrl(job);
 
   const handleClick = () => {
@@ -40,13 +40,13 @@ export function ExternalJobCard({ job, onClickTrack }: ExternalJobCardProps) {
       {/* Source Badge */}
       <div className="flex items-center justify-between mb-3">
         <span
-          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${sourceInfo.bgColor} ${sourceInfo.textColor}`}
+          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${domainInfo.bgColor} ${domainInfo.textColor}`}
         >
           <span
             className="w-2 h-2 rounded-full"
-            style={{ backgroundColor: sourceInfo.color }}
+            style={{ backgroundColor: domainInfo.color }}
           />
-          {sourceInfo.shortName}
+          {domainInfo.name}
         </span>
         <span className="inline-flex items-center gap-1 text-xs text-secondary-400">
           <ExternalLink className="h-3 w-3" />
@@ -89,7 +89,7 @@ export function ExternalJobCard({ job, onClickTrack }: ExternalJobCardProps) {
       {/* View on source site indicator */}
       <div className="mt-4 pt-3 border-t border-secondary-100">
         <span className="text-xs text-primary-600 font-medium group-hover:underline">
-          {sourceInfo.name} sitesinde görüntüle
+          {domainInfo.name} sitesinde görüntüle
         </span>
       </div>
     </a>

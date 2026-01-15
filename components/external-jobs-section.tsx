@@ -1,38 +1,43 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { ExternalLink, ChevronDown, ChevronUp } from 'lucide-react';
-import { ExternalJob, ExternalJobSource, SOURCE_INFO } from '@/lib/types/external-job';
+import Link from 'next/link';
+import { ExternalLink, ChevronDown, ChevronUp, ArrowRight } from 'lucide-react';
+import { ExternalJob, getDomainInfo } from '@/lib/types/external-job';
 import { ExternalJobCard } from './external-job-card';
 
 interface ExternalJobsSectionProps {
   jobs: ExternalJob[];
   initialLimit?: number;
   cityName?: string;
+  showViewAll?: boolean;
+  totalCount?: number;
 }
 
 export function ExternalJobsSection({
   jobs,
   initialLimit = 6,
   cityName,
+  showViewAll = false,
+  totalCount,
 }: ExternalJobsSectionProps) {
-  const [selectedSource, setSelectedSource] = useState<ExternalJobSource | 'all'>('all');
+  const [selectedDomain, setSelectedDomain] = useState<string | 'all'>('all');
   const [showAll, setShowAll] = useState(false);
 
-  // Get unique sources from jobs
-  const availableSources = useMemo(() => {
-    const sources = new Set<ExternalJobSource>();
-    jobs.forEach((job) => sources.add(job.source_name));
-    return Array.from(sources);
+  // Get unique domains from jobs
+  const availableDomains = useMemo(() => {
+    const domains = new Set<string>();
+    jobs.forEach((job) => domains.add(job.source_domain));
+    return Array.from(domains);
   }, [jobs]);
 
-  // Filter jobs by selected source
+  // Filter jobs by selected domain
   const filteredJobs = useMemo(() => {
-    if (selectedSource === 'all') {
+    if (selectedDomain === 'all') {
       return jobs;
     }
-    return jobs.filter((job) => job.source_name === selectedSource);
-  }, [jobs, selectedSource]);
+    return jobs.filter((job) => job.source_domain === selectedDomain);
+  }, [jobs, selectedDomain]);
 
   // Limit displayed jobs
   const displayedJobs = showAll ? filteredJobs : filteredJobs.slice(0, initialLimit);
@@ -59,48 +64,61 @@ export function ExternalJobsSection({
           </p>
         </div>
 
-        {/* Source count badge */}
-        <div className="text-sm text-secondary-500">
-          {filteredJobs.length} ilan
+        <div className="flex items-center gap-4">
+          {/* Source count badge */}
+          <div className="text-sm text-secondary-500">
+            {totalCount ? `${totalCount} ilan` : `${filteredJobs.length} ilan`}
+          </div>
+
+          {/* View All Link */}
+          {showViewAll && (
+            <Link
+              href="/ilanlar#external-jobs"
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors"
+            >
+              Tümünü Gör
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          )}
         </div>
       </div>
 
-      {/* Source Filter Tabs */}
-      {availableSources.length > 1 && (
+      {/* Domain Filter Tabs */}
+      {availableDomains.length > 1 && (
         <div className="flex flex-wrap gap-2 mb-6">
           <button
-            onClick={() => setSelectedSource('all')}
+            onClick={() => setSelectedDomain('all')}
             className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-              selectedSource === 'all'
+              selectedDomain === 'all'
                 ? 'bg-secondary-900 text-white'
                 : 'bg-secondary-100 text-secondary-700 hover:bg-secondary-200'
             }`}
           >
             Tümü ({jobs.length})
           </button>
-          {availableSources.map((source) => {
-            const sourceInfo = SOURCE_INFO[source];
-            const count = jobs.filter((j) => j.source_name === source).length;
+          {availableDomains.map((domain) => {
+            const domainInfo = getDomainInfo(domain);
+            const count = jobs.filter((j) => j.source_domain === domain).length;
             return (
               <button
-                key={source}
-                onClick={() => setSelectedSource(source)}
+                key={domain}
+                onClick={() => setSelectedDomain(domain)}
                 className={`px-4 py-2 rounded-full text-sm font-medium transition-colors inline-flex items-center gap-2 ${
-                  selectedSource === source
-                    ? `${sourceInfo.bgColor} ${sourceInfo.textColor} ring-2 ring-offset-1`
+                  selectedDomain === domain
+                    ? `${domainInfo.bgColor} ${domainInfo.textColor} ring-2 ring-offset-1`
                     : 'bg-secondary-100 text-secondary-700 hover:bg-secondary-200'
                 }`}
                 style={
-                  selectedSource === source
-                    ? { '--tw-ring-color': sourceInfo.color } as React.CSSProperties
+                  selectedDomain === domain
+                    ? { '--tw-ring-color': domainInfo.color } as React.CSSProperties
                     : undefined
                 }
               >
                 <span
                   className="w-2 h-2 rounded-full"
-                  style={{ backgroundColor: sourceInfo.color }}
+                  style={{ backgroundColor: domainInfo.color }}
                 />
-                {sourceInfo.shortName} ({count})
+                {domainInfo.name} ({count})
               </button>
             );
           })}

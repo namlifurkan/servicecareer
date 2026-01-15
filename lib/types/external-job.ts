@@ -1,13 +1,5 @@
 // External Job Types for UTM Referral System
 
-export type ExternalJobSource =
-  | 'kariyer'
-  | 'indeed'
-  | 'linkedin'
-  | 'yenibiris'
-  | 'eleman'
-  | 'secretcv';
-
 export interface ExternalJob {
   id: string;
   title: string;
@@ -15,7 +7,7 @@ export interface ExternalJob {
   location_city: string | null;
   location_district: string | null;
   description: string | null;
-  source_name: ExternalJobSource;
+  source_domain: string;
   source_url: string;
   position_type: string | null;
   venue_type: string | null;
@@ -36,7 +28,7 @@ export interface ExternalJobInsert {
   location_city?: string | null;
   location_district?: string | null;
   description?: string | null;
-  source_name: ExternalJobSource;
+  source_domain: string;
   source_url: string;
   position_type?: string | null;
   venue_type?: string | null;
@@ -54,7 +46,7 @@ export interface ExternalJobUpdate {
   location_city?: string | null;
   location_district?: string | null;
   description?: string | null;
-  source_name?: ExternalJobSource;
+  source_domain?: string;
   source_url?: string;
   position_type?: string | null;
   venue_type?: string | null;
@@ -65,89 +57,91 @@ export interface ExternalJobUpdate {
   expires_at?: string | null;
 }
 
-// Source site information with branding
-export interface SourceInfo {
+// Extract domain from URL
+export function extractDomain(url: string): string {
+  try {
+    const urlObj = new URL(url);
+    return urlObj.hostname.replace(/^www\./, '');
+  } catch {
+    return 'unknown';
+  }
+}
+
+// Domain display info with branding
+export interface DomainInfo {
   name: string;
-  shortName: string;
   color: string;
   bgColor: string;
   textColor: string;
 }
 
-export const SOURCE_INFO: Record<ExternalJobSource, SourceInfo> = {
-  kariyer: {
+// Known domains with custom branding
+const KNOWN_DOMAINS: Record<string, DomainInfo> = {
+  'kariyer.net': {
     name: 'Kariyer.net',
-    shortName: 'Kariyer',
     color: '#E31937',
     bgColor: 'bg-red-50',
     textColor: 'text-red-700',
   },
-  indeed: {
+  'indeed.com': {
     name: 'Indeed',
-    shortName: 'Indeed',
     color: '#2164F3',
     bgColor: 'bg-blue-50',
     textColor: 'text-blue-700',
   },
-  linkedin: {
+  'linkedin.com': {
     name: 'LinkedIn',
-    shortName: 'LinkedIn',
     color: '#0A66C2',
     bgColor: 'bg-sky-50',
     textColor: 'text-sky-700',
   },
-  yenibiris: {
+  'yenibiris.com': {
     name: 'Yenibiris.com',
-    shortName: 'Yenibiris',
-    color: '#FF6B00',
-    bgColor: 'bg-orange-50',
-    textColor: 'text-orange-700',
-  },
-  eleman: {
-    name: 'Eleman.net',
-    shortName: 'Eleman',
     color: '#00A651',
     bgColor: 'bg-green-50',
     textColor: 'text-green-700',
   },
-  secretcv: {
+  'eleman.net': {
+    name: 'Eleman.net',
+    color: '#FF6B00',
+    bgColor: 'bg-orange-50',
+    textColor: 'text-orange-700',
+  },
+  'secretcv.com': {
     name: 'SecretCV',
-    shortName: 'SecretCV',
     color: '#6B21A8',
     bgColor: 'bg-purple-50',
     textColor: 'text-purple-700',
   },
+  'softgarden.io': {
+    name: 'Softgarden',
+    color: '#10B981',
+    bgColor: 'bg-emerald-50',
+    textColor: 'text-emerald-700',
+  },
+  'join.com': {
+    name: 'JOIN',
+    color: '#6366F1',
+    bgColor: 'bg-indigo-50',
+    textColor: 'text-indigo-700',
+  },
 };
 
-// Position types commonly found in service industry (Turkish)
-export const EXTERNAL_JOB_POSITIONS = [
-  'Garson',
-  'Aşçı',
-  'Aşçı Yardımcısı',
-  'Barista',
-  'Barmen',
-  'Hostes',
-  'Kasiyer',
-  'Kurye',
-  'Mutfak Şefi',
-  'Restoran Müdürü',
-  'Bulaşıkçı',
-  'Temizlik Görevlisi',
-  'Vale',
-  'Komi',
-  'Pastacı',
-] as const;
+// Default styling for unknown domains
+const DEFAULT_DOMAIN_INFO: DomainInfo = {
+  name: '',
+  color: '#6B7280',
+  bgColor: 'bg-gray-50',
+  textColor: 'text-gray-700',
+};
 
-// Venue types (Turkish)
-export const EXTERNAL_JOB_VENUES = [
-  'Restoran',
-  'Cafe',
-  'Bar',
-  'Otel',
-  'Fast Food',
-  'Pastane',
-  'Fırın',
-  'Catering',
-  'Pub',
-  'Gece Kulübü',
-] as const;
+export function getDomainInfo(domain: string): DomainInfo {
+  const known = KNOWN_DOMAINS[domain];
+  if (known) return known;
+
+  // Generate name from domain
+  return {
+    ...DEFAULT_DOMAIN_INFO,
+    name: domain.split('.')[0].charAt(0).toUpperCase() + domain.split('.')[0].slice(1),
+  };
+}

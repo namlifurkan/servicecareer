@@ -93,7 +93,8 @@ export default async function HomePage() {
     urgentJobsCountResult,
     categoriesResult,
     citiesResult,
-    externalJobsResult
+    externalJobsResult,
+    externalJobsCountResult
   ] = await Promise.all([
     // Son ilanları getir
     supabase
@@ -193,7 +194,13 @@ export default async function HomePage() {
       .select('*')
       .eq('is_active', true)
       .order('created_at', { ascending: false })
-      .limit(6)
+      .limit(6),
+
+    // External jobs count
+    supabase
+      .from('external_jobs')
+      .select('id', { count: 'exact', head: true })
+      .eq('is_active', true)
   ])
 
   // Sonuçları çıkar
@@ -206,6 +213,7 @@ export default async function HomePage() {
   const categories = categoriesResult.data
   const cities = citiesResult.data
   const externalJobs = externalJobsResult.data as ExternalJob[] | null
+  const totalExternalJobs = externalJobsCountResult.count
 
   // Kategori ve şehir job count'larını paralel getir (N+1 optimizasyonu)
   const categoryIds = (categories || []).map(c => c.id)
@@ -599,7 +607,7 @@ export default async function HomePage() {
         {externalJobs && externalJobs.length > 0 && (
           <div className="bg-white border-b border-secondary-200">
             <div className="container mx-auto px-4 md:px-6 pb-12 md:pb-16">
-              <ExternalJobsSection jobs={externalJobs} initialLimit={6} />
+              <ExternalJobsSection jobs={externalJobs} initialLimit={6} showViewAll={true} totalCount={totalExternalJobs || 0} />
             </div>
           </div>
         )}

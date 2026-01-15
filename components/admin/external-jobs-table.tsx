@@ -11,7 +11,7 @@ import {
   ToggleRight,
   MousePointerClick,
 } from 'lucide-react';
-import { ExternalJob, SOURCE_INFO, ExternalJobSource } from '@/lib/types/external-job';
+import { ExternalJob, getDomainInfo } from '@/lib/types/external-job';
 import { formatRelativeTime } from '@/lib/utils';
 import { createClient } from '@/lib/supabase/client';
 
@@ -21,14 +21,14 @@ interface ExternalJobsTableProps {
 
 export function ExternalJobsTable({ jobs: initialJobs }: ExternalJobsTableProps) {
   const [jobs, setJobs] = useState(initialJobs);
-  const [selectedSource, setSelectedSource] = useState<ExternalJobSource | 'all'>('all');
+  const [selectedDomain, setSelectedDomain] = useState<string | 'all'>('all');
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
   const filteredJobs =
-    selectedSource === 'all' ? jobs : jobs.filter((j) => j.source_name === selectedSource);
+    selectedDomain === 'all' ? jobs : jobs.filter((j) => j.source_domain === selectedDomain);
 
-  // Get unique sources
-  const sources = Array.from(new Set(jobs.map((j) => j.source_name)));
+  // Get unique domains
+  const domains = Array.from(new Set(jobs.map((j) => j.source_domain)));
 
   const toggleActive = async (jobId: string, currentState: boolean) => {
     const supabase = createClient();
@@ -59,36 +59,36 @@ export function ExternalJobsTable({ jobs: initialJobs }: ExternalJobsTableProps)
 
   return (
     <div>
-      {/* Source Filter */}
+      {/* Domain Filter */}
       <div className="p-4 border-b border-secondary-100 flex flex-wrap gap-2">
         <button
-          onClick={() => setSelectedSource('all')}
+          onClick={() => setSelectedDomain('all')}
           className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
-            selectedSource === 'all'
+            selectedDomain === 'all'
               ? 'bg-secondary-900 text-white'
               : 'bg-secondary-100 text-secondary-700 hover:bg-secondary-200'
           }`}
         >
           Tümü ({jobs.length})
         </button>
-        {sources.map((source) => {
-          const sourceInfo = SOURCE_INFO[source];
-          const count = jobs.filter((j) => j.source_name === source).length;
+        {domains.map((domain) => {
+          const domainInfo = getDomainInfo(domain);
+          const count = jobs.filter((j) => j.source_domain === domain).length;
           return (
             <button
-              key={source}
-              onClick={() => setSelectedSource(source)}
+              key={domain}
+              onClick={() => setSelectedDomain(domain)}
               className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors inline-flex items-center gap-1.5 ${
-                selectedSource === source
-                  ? `${sourceInfo.bgColor} ${sourceInfo.textColor}`
+                selectedDomain === domain
+                  ? `${domainInfo.bgColor} ${domainInfo.textColor}`
                   : 'bg-secondary-100 text-secondary-700 hover:bg-secondary-200'
               }`}
             >
               <span
                 className="w-2 h-2 rounded-full"
-                style={{ backgroundColor: sourceInfo.color }}
+                style={{ backgroundColor: domainInfo.color }}
               />
-              {sourceInfo.shortName} ({count})
+              {domainInfo.name} ({count})
             </button>
           );
         })}
@@ -124,7 +124,7 @@ export function ExternalJobsTable({ jobs: initialJobs }: ExternalJobsTableProps)
           </thead>
           <tbody className="divide-y divide-secondary-100">
             {filteredJobs.map((job) => {
-              const sourceInfo = SOURCE_INFO[job.source_name];
+              const domainInfo = getDomainInfo(job.source_domain);
               return (
                 <tr key={job.id} className="hover:bg-secondary-50">
                   <td className="px-4 py-4">
@@ -135,13 +135,13 @@ export function ExternalJobsTable({ jobs: initialJobs }: ExternalJobsTableProps)
                   </td>
                   <td className="px-4 py-4">
                     <span
-                      className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium ${sourceInfo.bgColor} ${sourceInfo.textColor}`}
+                      className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium ${domainInfo.bgColor} ${domainInfo.textColor}`}
                     >
                       <span
                         className="w-2 h-2 rounded-full"
-                        style={{ backgroundColor: sourceInfo.color }}
+                        style={{ backgroundColor: domainInfo.color }}
                       />
-                      {sourceInfo.shortName}
+                      {domainInfo.name}
                     </span>
                   </td>
                   <td className="px-4 py-4 text-sm text-secondary-600">
@@ -210,7 +210,6 @@ export function ExternalJobsTable({ jobs: initialJobs }: ExternalJobsTableProps)
                               </>
                             )}
                           </button>
-                          <hr className="my-1 border-secondary-100" />
                           <button
                             onClick={() => deleteJob(job.id)}
                             className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50"
@@ -227,19 +226,13 @@ export function ExternalJobsTable({ jobs: initialJobs }: ExternalJobsTableProps)
             })}
           </tbody>
         </table>
-
-        {filteredJobs.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-secondary-500">Henüz dış ilan eklenmemiş.</p>
-            <Link
-              href="/admin/external-jobs/new"
-              className="inline-flex items-center gap-2 mt-4 text-primary-600 hover:text-primary-700 font-medium"
-            >
-              İlk ilanı ekle
-            </Link>
-          </div>
-        )}
       </div>
+
+      {filteredJobs.length === 0 && (
+        <div className="text-center py-12">
+          <p className="text-secondary-500">Henüz harici ilan eklenmemiş.</p>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { ExternalJob } from '@/lib/types/external-job';
+import { ExternalJob, extractDomain } from '@/lib/types/external-job';
 
 /**
  * Builds a URL with UTM parameters for external job tracking
@@ -27,49 +27,21 @@ export function buildExternalJobUrl(job: ExternalJob): string {
 }
 
 /**
- * Validates if a URL is from a known job source
+ * Validates if a URL is a valid job URL
  */
-export function isValidJobSourceUrl(url: string): boolean {
-  const validDomains = [
-    'kariyer.net',
-    'indeed.com',
-    'indeed.com.tr',
-    'linkedin.com',
-    'yenibiris.com',
-    'eleman.net',
-    'secretcv.com',
-  ];
-
+export function isValidJobUrl(url: string): boolean {
   try {
     const parsedUrl = new URL(url);
-    return validDomains.some((domain) => parsedUrl.hostname.includes(domain));
+    return parsedUrl.protocol === 'https:' || parsedUrl.protocol === 'http:';
   } catch {
     return false;
   }
 }
 
 /**
- * Detects the source from a job URL
+ * Extracts domain from URL (re-exported from types for convenience)
  */
-export function detectSourceFromUrl(
-  url: string
-): 'kariyer' | 'indeed' | 'linkedin' | 'yenibiris' | 'eleman' | 'secretcv' | null {
-  try {
-    const parsedUrl = new URL(url);
-    const hostname = parsedUrl.hostname.toLowerCase();
-
-    if (hostname.includes('kariyer.net')) return 'kariyer';
-    if (hostname.includes('indeed.com')) return 'indeed';
-    if (hostname.includes('linkedin.com')) return 'linkedin';
-    if (hostname.includes('yenibiris.com')) return 'yenibiris';
-    if (hostname.includes('eleman.net')) return 'eleman';
-    if (hostname.includes('secretcv.com')) return 'secretcv';
-
-    return null;
-  } catch {
-    return null;
-  }
-}
+export { extractDomain } from '@/lib/types/external-job';
 
 /**
  * Generates a campaign name from job details
@@ -98,9 +70,5 @@ export function generateCampaignName(
     );
   }
 
-  if (parts.length === 0) {
-    return 'hizmet-sektoru';
-  }
-
-  return parts.join('-');
+  return parts.join('-') || 'external-job';
 }

@@ -228,7 +228,9 @@ export default async function JobListingsPage() {
 
           {/* External Jobs from Partner Sites */}
           {externalJobs && externalJobs.length > 0 && (
-            <ExternalJobsSection jobs={externalJobs as ExternalJob[]} />
+            <div id="external-jobs">
+              <ExternalJobsSection jobs={externalJobs as ExternalJob[]} />
+            </div>
           )}
         </div>
       </main>

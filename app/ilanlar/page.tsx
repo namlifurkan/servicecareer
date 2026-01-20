@@ -3,9 +3,9 @@ import Link from 'next/link'
 import { Header } from '@/components/header'
 import { Footer } from '@/components/footer'
 import { JobListingsEnhanced } from '@/components/job-listings-enhanced'
-import { ExternalJobsSection } from '@/components/external-jobs-section'
 import { createClient } from '@/lib/supabase/server'
 import { ExternalJob } from '@/lib/types/external-job'
+import { transformExternalJobsToUnified, mergeJobsWithExternal, type UnifiedJob } from '@/lib/external-job-utils'
 
 export const metadata: Metadata = {
   title: 'İş İlanları - Restoran ve Kafe | Yeme İçme İşi',
@@ -120,7 +120,20 @@ export default async function JobListingsPage() {
     ...job,
     companies: Array.isArray(job.companies) ? job.companies[0] || null : job.companies,
     categories: Array.isArray(job.categories) ? job.categories[0] || null : job.categories,
+    isExternal: false,
   })) || []
+
+  // Transform and merge external jobs with internal jobs
+  const transformedExternalJobs = externalJobs
+    ? transformExternalJobsToUnified(externalJobs as ExternalJob[])
+    : []
+
+  // Merge jobs - external jobs will be interleaved (1 external every 5 internal)
+  const mergedJobs = mergeJobsWithExternal(
+    transformedJobs as UnifiedJob[],
+    transformedExternalJobs,
+    5
+  )
 
   return (
     <>
@@ -135,14 +148,14 @@ export default async function JobListingsPage() {
                   Hizmet Sektörü İş İlanları
                 </h1>
                 <p className="text-base md:text-lg text-secondary-600">
-                  Restoran, kafe, bar ve otel sektöründe {transformedJobs.length} aktif ilan
+                  Restoran, kafe, bar ve otel sektöründe {mergedJobs.length} aktif ilan
                 </p>
               </div>
 
               {/* Quick Stats */}
               <div className="flex items-center gap-4 md:gap-6">
                 <div className="text-center px-4 py-2 bg-secondary-50 rounded-lg">
-                  <p className="text-2xl font-bold text-primary-600">{transformedJobs.length}</p>
+                  <p className="text-2xl font-bold text-primary-600">{mergedJobs.length}</p>
                   <p className="text-xs text-secondary-500">Toplam İlan</p>
                 </div>
                 {(urgentCount || 0) > 0 && (
@@ -215,21 +228,14 @@ export default async function JobListingsPage() {
             <div className="bg-white rounded-2xl border border-accent-200 p-8 text-center">
               <p className="text-accent-600">İlanlar yüklenirken bir hata oluştu.</p>
             </div>
-          ) : transformedJobs.length > 0 ? (
+          ) : mergedJobs.length > 0 ? (
             <JobListingsEnhanced
-              jobs={transformedJobs}
+              jobs={mergedJobs as any}
               categories={categories || []}
             />
           ) : (
             <div className="text-center py-20 bg-white rounded-2xl border border-secondary-200">
               <p className="text-lg text-secondary-600">Henüz ilan bulunmamaktadır.</p>
-            </div>
-          )}
-
-          {/* External Jobs from Partner Sites */}
-          {externalJobs && externalJobs.length > 0 && (
-            <div id="external-jobs">
-              <ExternalJobsSection jobs={externalJobs as ExternalJob[]} />
             </div>
           )}
         </div>

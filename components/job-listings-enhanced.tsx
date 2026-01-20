@@ -21,6 +21,7 @@ import {
   SlidersHorizontal,
   Check,
   CheckCircle2,
+  ExternalLink,
 } from 'lucide-react'
 import { formatRelativeTime } from '@/lib/utils'
 import {
@@ -36,6 +37,8 @@ import {
   CUISINE_TYPE_LABELS,
   getPositionsGrouped,
 } from '@/lib/types/service-industry'
+import { getDomainInfo, buildExternalJobUrl } from '@/lib/external-job-utils'
+import type { ExternalJob } from '@/lib/types/external-job'
 
 interface Job {
   id: string
@@ -69,6 +72,13 @@ interface Job {
     name: string
     slug: string
   } | null
+  // External job specific fields
+  isExternal?: boolean
+  source_domain?: string
+  source_url?: string
+  utm_source?: string
+  utm_medium?: string
+  utm_campaign?: string | null
 }
 
 interface JobListingsEnhancedProps {
@@ -84,6 +94,34 @@ export function JobListingsEnhanced({
 }: JobListingsEnhancedProps) {
   const searchParams = useSearchParams()
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('list')
+
+  // Track external job clicks
+  const trackExternalClick = (jobId: string) => {
+    fetch('/api/external-job-click', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ jobId }),
+    }).catch(() => {
+      // Silently fail - don't block navigation
+    })
+  }
+
+  // Build URL for external jobs
+  const getExternalUrl = (job: Job) => {
+    if (!job.source_url) return '#'
+    try {
+      const url = new URL(job.source_url)
+      url.searchParams.set('utm_source', job.utm_source || 'yemeicmeisi')
+      url.searchParams.set('utm_medium', job.utm_medium || 'referral')
+      if (job.utm_campaign) {
+        url.searchParams.set('utm_campaign', job.utm_campaign)
+      }
+      url.searchParams.set('utm_content', job.id)
+      return url.toString()
+    } catch {
+      return job.source_url
+    }
+  }
   const [showMobileFilters, setShowMobileFilters] = useState(false)
   const [expandedSections, setExpandedSections] = useState<string[]>([
     'position',
@@ -126,12 +164,39 @@ export function JobListingsEnhanced({
     }
   }, [searchParams, initialCity])
 
-  // Get unique cities from jobs
-  const cities = useMemo(() => {
-    const uniqueCities = Array.from(
-      new Set(jobs.map((job) => job.location_city).filter(Boolean))
-    )
-    return uniqueCities.sort()
+  // Get unique cities from jobs with count
+  const citiesWithCount = useMemo(() => {
+    const cityCount: Record<string, number> = {}
+    jobs.forEach((job) => {
+      if (job.location_city) {
+        cityCount[job.location_city] = (cityCount[job.location_city] || 0) + 1
+      }
+    })
+    return Object.entries(cityCount)
+      .map(([city, count]) => ({ city, count }))
+      .sort((a, b) => b.count - a.count) // En çok ilanlı şehir önce
+  }, [jobs])
+
+  // Get position types that have jobs with count
+  const positionTypesWithCount = useMemo(() => {
+    const posCount: Record<string, number> = {}
+    jobs.forEach((job) => {
+      if (job.position_type) {
+        posCount[job.position_type] = (posCount[job.position_type] || 0) + 1
+      }
+    })
+    return posCount
+  }, [jobs])
+
+  // Get venue types that have jobs with count
+  const venueTypesWithCount = useMemo(() => {
+    const venueCount: Record<string, number> = {}
+    jobs.forEach((job) => {
+      if (job.venue_type) {
+        venueCount[job.venue_type] = (venueCount[job.venue_type] || 0) + 1
+      }
+    })
+    return venueCount
   }, [jobs])
 
   // Toggle section expansion
@@ -305,8 +370,8 @@ export function JobListingsEnhanced({
           style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`, backgroundPosition: 'right 0.5rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.5em 1.5em', paddingRight: '2.5rem' }}
         >
           <option value="">Tüm Şehirler</option>
-          {cities.map((city) => (
-            <option key={city} value={city}>{city}</option>
+          {citiesWithCount.map(({ city, count }) => (
+            <option key={city} value={city}>{city} ({count})</option>
           ))}
         </select>
       </div>
@@ -342,42 +407,52 @@ export function JobListingsEnhanced({
         </button>
         {expandedSections.includes('position') && (
           <div className="mt-2 space-y-3 max-h-64 overflow-y-auto">
-            {positionGroups.slice(0, 4).map((group) => (
-              <div key={group.category}>
-                <p className="text-xs font-medium text-secondary-400 uppercase tracking-wider mb-2">
-                  {group.categoryLabel}
-                </p>
-                <div className="space-y-1">
-                  {group.positions.slice(0, 5).map((pos) => (
-                    <label
-                      key={pos.value}
-                      className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer transition-colors ${
-                        selectedPositionTypes.includes(pos.value)
-                          ? 'bg-primary-50'
-                          : 'hover:bg-secondary-50'
-                      }`}
-                    >
-                      <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${
-                        selectedPositionTypes.includes(pos.value)
-                          ? 'bg-primary-600 border-primary-600'
-                          : 'border-secondary-300'
-                      }`}>
-                        {selectedPositionTypes.includes(pos.value) && (
-                          <Check className="h-3 w-3 text-white" />
-                        )}
-                      </div>
-                      <span className={`text-sm ${
-                        selectedPositionTypes.includes(pos.value)
-                          ? 'text-primary-700 font-medium'
-                          : 'text-secondary-700'
-                      }`}>
-                        {pos.label}
-                      </span>
-                    </label>
-                  ))}
+            {positionGroups.map((group) => {
+              // Sadece ilan olan pozisyonları filtrele
+              const positionsWithJobs = group.positions.filter(
+                (pos) => positionTypesWithCount[pos.value]
+              )
+              if (positionsWithJobs.length === 0) return null
+              return (
+                <div key={group.category}>
+                  <p className="text-xs font-medium text-secondary-400 uppercase tracking-wider mb-2">
+                    {group.categoryLabel}
+                  </p>
+                  <div className="space-y-1">
+                    {positionsWithJobs.map((pos) => (
+                      <label
+                        key={pos.value}
+                        className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer transition-colors ${
+                          selectedPositionTypes.includes(pos.value)
+                            ? 'bg-primary-50'
+                            : 'hover:bg-secondary-50'
+                        }`}
+                      >
+                        <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${
+                          selectedPositionTypes.includes(pos.value)
+                            ? 'bg-primary-600 border-primary-600'
+                            : 'border-secondary-300'
+                        }`}>
+                          {selectedPositionTypes.includes(pos.value) && (
+                            <Check className="h-3 w-3 text-white" />
+                          )}
+                        </div>
+                        <span className={`text-sm flex-1 ${
+                          selectedPositionTypes.includes(pos.value)
+                            ? 'text-primary-700 font-medium'
+                            : 'text-secondary-700'
+                        }`}>
+                          {pos.label}
+                        </span>
+                        <span className="text-xs text-secondary-400">
+                          {positionTypesWithCount[pos.value]}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         )}
       </div>
@@ -469,7 +544,9 @@ export function JobListingsEnhanced({
         </button>
         {expandedSections.includes('venue') && (
           <div className="mt-2 flex flex-wrap gap-2">
-            {Object.entries(VENUE_TYPE_LABELS).slice(0, 12).map(([value, label]) => (
+            {Object.entries(VENUE_TYPE_LABELS)
+              .filter(([value]) => venueTypesWithCount[value])
+              .map(([value, label]) => (
               <button
                 key={value}
                 onClick={() => toggleArrayFilter(setSelectedVenueTypes, value as VenueType)}
@@ -479,7 +556,7 @@ export function JobListingsEnhanced({
                     : 'bg-secondary-100 text-secondary-700 hover:bg-secondary-200'
                 }`}
               >
-                {label}
+                {label} ({venueTypesWithCount[value]})
               </button>
             ))}
           </div>
@@ -712,191 +789,251 @@ export function JobListingsEnhanced({
         {/* Job Listings - Grid View */}
         {viewMode === 'grid' && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {filteredJobs.map((job) => (
-              <Link
-                key={job.id}
-                href={`/ilan/${job.slug}`}
-                className="group bg-white rounded-xl border border-secondary-200 hover:border-primary-200 hover:shadow-lg transition-all p-5"
-              >
-                {/* Urgent Badge */}
-                {job.is_urgent && (
-                  <div className="mb-3">
-                    <span className="inline-flex items-center gap-1 px-2 py-1 bg-red-100 text-red-700 rounded text-xs font-medium">
-                      <AlertCircle className="h-3 w-3" />
-                      ACİL
-                    </span>
-                  </div>
-                )}
+            {filteredJobs.map((job) => {
+              const CardWrapper = job.isExternal ? 'a' : Link
+              const cardProps = job.isExternal
+                ? {
+                    href: getExternalUrl(job),
+                    target: '_blank',
+                    rel: 'noopener noreferrer',
+                    onClick: () => trackExternalClick(job.id),
+                  }
+                : { href: `/ilan/${job.slug}` }
 
-                <div className="flex items-start gap-4">
-                  {/* Company Logo */}
-                  {job.companies?.logo_url ? (
-                    <img
-                      src={job.companies.logo_url}
-                      alt={job.companies.name}
-                      className="w-12 h-12 rounded-lg object-cover border border-secondary-100 flex-shrink-0"
-                    />
-                  ) : (
-                    <div className="w-12 h-12 rounded-lg bg-secondary-100 flex items-center justify-center flex-shrink-0">
-                      <Building2 className="h-6 w-6 text-secondary-400" />
+              const domainInfo = job.isExternal && job.source_domain ? getDomainInfo(job.source_domain) : null
+
+              return (
+                <CardWrapper
+                  key={job.id}
+                  {...cardProps}
+                  className="group bg-white rounded-xl border border-secondary-200 hover:border-primary-200 hover:shadow-lg transition-all p-5"
+                >
+                  {/* External Source Badge or Urgent Badge */}
+                  {job.isExternal && domainInfo ? (
+                    <div className="flex items-center justify-between mb-3">
+                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${domainInfo.bgColor} ${domainInfo.textColor}`}>
+                        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: domainInfo.color }} />
+                        {domainInfo.name}
+                      </span>
+                      <span className="inline-flex items-center gap-1 text-xs text-secondary-400">
+                        <ExternalLink className="h-3 w-3" />
+                      </span>
                     </div>
-                  )}
+                  ) : job.is_urgent ? (
+                    <div className="mb-3">
+                      <span className="inline-flex items-center gap-1 px-2 py-1 bg-red-100 text-red-700 rounded text-xs font-medium">
+                        <AlertCircle className="h-3 w-3" />
+                        ACİL
+                      </span>
+                    </div>
+                  ) : null}
 
-                  <div className="flex-1 min-w-0">
-                    <h2 className="font-semibold text-secondary-900 group-hover:text-primary-600 transition-colors line-clamp-1">
-                      {job.title}
-                    </h2>
-                    <p className="text-sm text-secondary-600 truncate">
-                      {job.companies?.name || 'Şirket'}
-                    </p>
+                  <div className="flex items-start gap-4">
+                    {/* Company Logo */}
+                    {job.companies?.logo_url ? (
+                      <img
+                        src={job.companies.logo_url}
+                        alt={job.companies.name}
+                        className="w-12 h-12 rounded-lg object-cover border border-secondary-100 flex-shrink-0"
+                      />
+                    ) : (
+                      <div className="w-12 h-12 rounded-lg bg-secondary-100 flex items-center justify-center flex-shrink-0">
+                        <Building2 className="h-6 w-6 text-secondary-400" />
+                      </div>
+                    )}
+
+                    <div className="flex-1 min-w-0">
+                      <h2 className="font-semibold text-secondary-900 group-hover:text-primary-600 transition-colors line-clamp-1">
+                        {job.title}
+                      </h2>
+                      <p className="text-sm text-secondary-600 truncate">
+                        {job.companies?.name || 'Şirket'}
+                      </p>
+                    </div>
                   </div>
-                </div>
 
-                <div className="mt-4 flex items-center gap-2 text-sm text-secondary-500">
-                  <MapPin className="h-4 w-4 flex-shrink-0" />
-                  <span>{job.location_city}</span>
-                  {job.published_at && (
-                    <>
-                      <span className="text-secondary-300">·</span>
-                      <span>{formatRelativeTime(job.published_at)}</span>
-                    </>
-                  )}
-                </div>
-
-                <div className="mt-3 flex flex-wrap gap-1.5">
-                  {job.position_type && (
-                    <span className="px-2 py-1 text-xs font-medium bg-primary-50 text-primary-700 rounded">
-                      {JOB_POSITION_LABELS[job.position_type]}
-                    </span>
-                  )}
-                  {job.venue_type && (
-                    <span className="px-2 py-1 text-xs font-medium bg-secondary-100 text-secondary-600 rounded">
-                      {VENUE_TYPE_LABELS[job.venue_type]}
-                    </span>
-                  )}
-                </div>
-
-                {/* Benefits & Salary */}
-                <div className="mt-3 pt-3 border-t border-secondary-100 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    {((job.meal_policy && job.meal_policy !== 'none' && job.meal_policy !== 'not_provided') || job.benefits?.includes('Yemek')) && (
-                      <span title="Yemek"><Utensils className="h-4 w-4 text-orange-500" /></span>
-                    )}
-                    {((job.tip_policy && job.tip_policy !== 'no_tips') || job.benefits?.includes('Bahşiş')) && (
-                      <span title="Bahşiş"><Coins className="h-4 w-4 text-green-500" /></span>
-                    )}
-                    {job.uniform_policy && job.uniform_policy !== 'none' && (
-                      <span title="Üniforma"><Shirt className="h-4 w-4 text-blue-500" /></span>
-                    )}
-                    {job.benefits?.includes('Sağlık Sigortası') && (
-                      <span title="Sigorta"><CheckCircle2 className="h-4 w-4 text-purple-500" /></span>
+                  <div className="mt-4 flex items-center gap-2 text-sm text-secondary-500">
+                    <MapPin className="h-4 w-4 flex-shrink-0" />
+                    <span>{job.location_city}</span>
+                    {job.published_at && (
+                      <>
+                        <span className="text-secondary-300">·</span>
+                        <span>{formatRelativeTime(job.published_at)}</span>
+                      </>
                     )}
                   </div>
-                  {job.show_salary && job.salary_min && (
-                    <p className="text-sm font-semibold text-green-600">
-                      {job.salary_min.toLocaleString('tr-TR')} TL
-                    </p>
-                  )}
-                </div>
-              </Link>
-            ))}
+
+                  <div className="mt-3 flex flex-wrap gap-1.5">
+                    {job.position_type && (
+                      <span className="px-2 py-1 text-xs font-medium bg-primary-50 text-primary-700 rounded">
+                        {JOB_POSITION_LABELS[job.position_type as JobPositionType] || job.position_type}
+                      </span>
+                    )}
+                    {job.venue_type && (
+                      <span className="px-2 py-1 text-xs font-medium bg-secondary-100 text-secondary-600 rounded">
+                        {VENUE_TYPE_LABELS[job.venue_type as VenueType] || job.venue_type}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Benefits & Salary or External Link Indicator */}
+                  <div className="mt-3 pt-3 border-t border-secondary-100 flex items-center justify-between">
+                    {job.isExternal ? (
+                      <span className="text-xs text-primary-600 font-medium group-hover:underline">
+                        {domainInfo?.name} sitesinde görüntüle
+                      </span>
+                    ) : (
+                      <>
+                        <div className="flex items-center gap-2">
+                          {((job.meal_policy && job.meal_policy !== 'none' && job.meal_policy !== 'not_provided') || job.benefits?.includes('Yemek')) && (
+                            <span title="Yemek"><Utensils className="h-4 w-4 text-orange-500" /></span>
+                          )}
+                          {((job.tip_policy && job.tip_policy !== 'no_tips') || job.benefits?.includes('Bahşiş')) && (
+                            <span title="Bahşiş"><Coins className="h-4 w-4 text-green-500" /></span>
+                          )}
+                          {job.uniform_policy && job.uniform_policy !== 'none' && (
+                            <span title="Üniforma"><Shirt className="h-4 w-4 text-blue-500" /></span>
+                          )}
+                          {job.benefits?.includes('Sağlık Sigortası') && (
+                            <span title="Sigorta"><CheckCircle2 className="h-4 w-4 text-purple-500" /></span>
+                          )}
+                        </div>
+                        {job.show_salary && job.salary_min && (
+                          <p className="text-sm font-semibold text-green-600">
+                            {job.salary_min.toLocaleString('tr-TR')} TL
+                          </p>
+                        )}
+                      </>
+                    )}
+                  </div>
+                </CardWrapper>
+              )
+            })}
           </div>
         )}
 
         {/* Job Listings - List View */}
         {viewMode === 'list' && (
           <div className="space-y-3">
-            {filteredJobs.map((job) => (
-              <Link
-                key={job.id}
-                href={`/ilan/${job.slug}`}
-                className="group bg-white rounded-xl border border-secondary-200 hover:border-primary-200 hover:shadow-md transition-all block p-4"
-              >
-                <div className="flex items-center gap-4">
-                  {/* Company Logo */}
-                  {job.companies?.logo_url ? (
-                    <img
-                      src={job.companies.logo_url}
-                      alt={job.companies.name}
-                      className="w-14 h-14 rounded-lg object-cover border border-secondary-100 flex-shrink-0"
-                    />
-                  ) : (
-                    <div className="w-14 h-14 rounded-lg bg-secondary-100 flex items-center justify-center flex-shrink-0">
-                      <Building2 className="h-7 w-7 text-secondary-400" />
-                    </div>
-                  )}
+            {filteredJobs.map((job) => {
+              const CardWrapper = job.isExternal ? 'a' : Link
+              const cardProps = job.isExternal
+                ? {
+                    href: getExternalUrl(job),
+                    target: '_blank',
+                    rel: 'noopener noreferrer',
+                    onClick: () => trackExternalClick(job.id),
+                  }
+                : { href: `/ilan/${job.slug}` }
 
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <h2 className="font-semibold text-secondary-900 group-hover:text-primary-600 transition-colors">
-                            {job.title}
-                          </h2>
-                          {job.is_urgent && (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-red-100 text-red-700 rounded text-xs font-medium">
-                              <AlertCircle className="h-3 w-3" />
-                              ACİL
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-sm text-secondary-600">
-                          {job.companies?.name || 'Şirket'}
-                        </p>
+              const domainInfo = job.isExternal && job.source_domain ? getDomainInfo(job.source_domain) : null
 
-                        <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-secondary-500">
-                          <span className="flex items-center gap-1">
-                            <MapPin className="h-3.5 w-3.5" />
-                            {job.location_city}
-                          </span>
-                          {job.position_type && (
-                            <span className="px-2 py-0.5 rounded text-xs font-medium bg-primary-50 text-primary-700">
-                              {JOB_POSITION_LABELS[job.position_type]}
-                            </span>
-                          )}
-                          {job.shift_types && job.shift_types[0] && (
-                            <span className="px-2 py-0.5 rounded text-xs font-medium bg-secondary-100 text-secondary-600">
-                              {SHIFT_TYPE_LABELS[job.shift_types[0]]}
-                            </span>
-                          )}
-                          {/* Benefits */}
-                          <span className="flex items-center gap-1.5">
-                            {((job.meal_policy && job.meal_policy !== 'none' && job.meal_policy !== 'not_provided') || job.benefits?.includes('Yemek')) && (
-                              <span title="Yemek"><Utensils className="h-3.5 w-3.5 text-orange-500" /></span>
-                            )}
-                            {((job.tip_policy && job.tip_policy !== 'no_tips') || job.benefits?.includes('Bahşiş')) && (
-                              <span title="Bahşiş"><Coins className="h-3.5 w-3.5 text-green-500" /></span>
-                            )}
-                            {job.benefits?.includes('Sağlık Sigortası') && (
-                              <span title="Sigorta"><CheckCircle2 className="h-3.5 w-3.5 text-purple-500" /></span>
-                            )}
-                          </span>
-                          {job.published_at && (
-                            <span className="flex items-center gap-1 text-secondary-400">
-                              <Clock className="h-3.5 w-3.5" />
-                              {formatRelativeTime(job.published_at)}
-                            </span>
-                          )}
-                        </div>
+              return (
+                <CardWrapper
+                  key={job.id}
+                  {...cardProps}
+                  className="group bg-white rounded-xl border border-secondary-200 hover:border-primary-200 hover:shadow-md transition-all block p-4"
+                >
+                  <div className="flex items-center gap-4">
+                    {/* Company Logo */}
+                    {job.companies?.logo_url ? (
+                      <img
+                        src={job.companies.logo_url}
+                        alt={job.companies.name}
+                        className="w-14 h-14 rounded-lg object-cover border border-secondary-100 flex-shrink-0"
+                      />
+                    ) : (
+                      <div className="w-14 h-14 rounded-lg bg-secondary-100 flex items-center justify-center flex-shrink-0">
+                        <Building2 className="h-7 w-7 text-secondary-400" />
                       </div>
+                    )}
 
-                      {job.show_salary && job.salary_min && (
-                        <div className="text-right flex-shrink-0">
-                          <p className="font-semibold text-green-600">
-                            {job.salary_min.toLocaleString('tr-TR')} TL
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <h2 className="font-semibold text-secondary-900 group-hover:text-primary-600 transition-colors">
+                              {job.title}
+                            </h2>
+                            {job.isExternal && domainInfo ? (
+                              <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium ${domainInfo.bgColor} ${domainInfo.textColor}`}>
+                                <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: domainInfo.color }} />
+                                {domainInfo.name}
+                                <ExternalLink className="h-3 w-3" />
+                              </span>
+                            ) : job.is_urgent ? (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-red-100 text-red-700 rounded text-xs font-medium">
+                                <AlertCircle className="h-3 w-3" />
+                                ACİL
+                              </span>
+                            ) : null}
+                          </div>
+                          <p className="text-sm text-secondary-600">
+                            {job.companies?.name || 'Şirket'}
                           </p>
-                          {job.salary_max && job.salary_max !== job.salary_min && (
-                            <p className="text-xs text-secondary-500">
-                              - {job.salary_max.toLocaleString('tr-TR')} TL
-                            </p>
-                          )}
+
+                          <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-secondary-500">
+                            <span className="flex items-center gap-1">
+                              <MapPin className="h-3.5 w-3.5" />
+                              {job.location_city}
+                            </span>
+                            {job.position_type && (
+                              <span className="px-2 py-0.5 rounded text-xs font-medium bg-primary-50 text-primary-700">
+                                {JOB_POSITION_LABELS[job.position_type as JobPositionType] || job.position_type}
+                              </span>
+                            )}
+                            {!job.isExternal && job.shift_types && job.shift_types[0] && (
+                              <span className="px-2 py-0.5 rounded text-xs font-medium bg-secondary-100 text-secondary-600">
+                                {SHIFT_TYPE_LABELS[job.shift_types[0]]}
+                              </span>
+                            )}
+                            {/* Benefits - only for internal jobs */}
+                            {!job.isExternal && (
+                              <span className="flex items-center gap-1.5">
+                                {((job.meal_policy && job.meal_policy !== 'none' && job.meal_policy !== 'not_provided') || job.benefits?.includes('Yemek')) && (
+                                  <span title="Yemek"><Utensils className="h-3.5 w-3.5 text-orange-500" /></span>
+                                )}
+                                {((job.tip_policy && job.tip_policy !== 'no_tips') || job.benefits?.includes('Bahşiş')) && (
+                                  <span title="Bahşiş"><Coins className="h-3.5 w-3.5 text-green-500" /></span>
+                                )}
+                                {job.benefits?.includes('Sağlık Sigortası') && (
+                                  <span title="Sigorta"><CheckCircle2 className="h-3.5 w-3.5 text-purple-500" /></span>
+                                )}
+                              </span>
+                            )}
+                            {job.published_at && (
+                              <span className="flex items-center gap-1 text-secondary-400">
+                                <Clock className="h-3.5 w-3.5" />
+                                {formatRelativeTime(job.published_at)}
+                              </span>
+                            )}
+                          </div>
                         </div>
-                      )}
+
+                        {job.isExternal ? (
+                          <div className="text-right flex-shrink-0">
+                            <span className="text-xs text-primary-600 font-medium group-hover:underline whitespace-nowrap">
+                              Görüntüle
+                            </span>
+                          </div>
+                        ) : job.show_salary && job.salary_min ? (
+                          <div className="text-right flex-shrink-0">
+                            <p className="font-semibold text-green-600">
+                              {job.salary_min.toLocaleString('tr-TR')} TL
+                            </p>
+                            {job.salary_max && job.salary_max !== job.salary_min && (
+                              <p className="text-xs text-secondary-500">
+                                - {job.salary_max.toLocaleString('tr-TR')} TL
+                              </p>
+                            )}
+                          </div>
+                        ) : null}
+                      </div>
                     </div>
                   </div>
-                </div>
-              </Link>
-            ))}
+                </CardWrapper>
+              )
+            })}
           </div>
         )}
 

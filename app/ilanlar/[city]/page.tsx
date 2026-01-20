@@ -3,10 +3,10 @@ import Link from 'next/link'
 import { Header } from '@/components/header'
 import { Footer } from '@/components/footer'
 import { JobListingsEnhanced } from '@/components/job-listings-enhanced'
-import { ExternalJobsSection } from '@/components/external-jobs-section'
 import { createClient } from '@/lib/supabase/server'
 import { ExternalJob } from '@/lib/types/external-job'
-import { MapPin, AlertCircle, Briefcase } from 'lucide-react'
+import { transformExternalJobsToUnified, mergeJobsWithExternal, type UnifiedJob } from '@/lib/external-job-utils'
+import { MapPin } from 'lucide-react'
 
 // Popüler şehirler için statik sayfa oluşturma - Footer'daki tüm şehirler
 export async function generateStaticParams() {
@@ -149,7 +149,20 @@ export default async function CityJobListingsPage({ params }: Props) {
     ...job,
     companies: Array.isArray(job.companies) ? job.companies[0] || null : job.companies,
     categories: Array.isArray(job.categories) ? job.categories[0] || null : job.categories,
+    isExternal: false,
   })) || []
+
+  // Transform and merge external jobs with internal jobs
+  const transformedExternalJobs = externalJobs
+    ? transformExternalJobsToUnified(externalJobs as ExternalJob[])
+    : []
+
+  // Merge jobs - external jobs will be interleaved (1 external every 5 internal)
+  const mergedJobs = mergeJobsWithExternal(
+    transformedJobs as UnifiedJob[],
+    transformedExternalJobs,
+    5
+  )
 
   return (
     <>
@@ -190,14 +203,14 @@ export default async function CityJobListingsPage({ params }: Props) {
                 </h1>
               </div>
               <p className="text-secondary-600">
-                {cityName} ilinde hizmet sektöründe {transformedJobs.length} aktif iş ilanı
+                {cityName} ilinde hizmet sektöründe {mergedJobs.length} aktif iş ilanı
               </p>
             </div>
 
             {/* Stats */}
             <div className="flex items-center gap-4">
               <div className="text-center px-4 py-2 bg-primary-50 rounded-lg">
-                <p className="text-xl font-bold text-primary-600">{transformedJobs.length}</p>
+                <p className="text-xl font-bold text-primary-600">{mergedJobs.length}</p>
                 <p className="text-xs text-primary-600">İlan</p>
               </div>
               {(urgentCount || 0) > 0 && (
@@ -221,8 +234,8 @@ export default async function CityJobListingsPage({ params }: Props) {
                 '@type': 'ItemList',
                 name: `${cityName} İş İlanları`,
                 description: `${cityName} ilinde hizmet sektöründe iş ilanları`,
-                numberOfItems: transformedJobs.length,
-                itemListElement: transformedJobs.slice(0, 10).map((job, index) => ({
+                numberOfItems: mergedJobs.length,
+                itemListElement: mergedJobs.filter(j => !j.isExternal).slice(0, 10).map((job, index) => ({
                   '@type': 'ListItem',
                   position: index + 1,
                   item: {
@@ -253,8 +266,8 @@ export default async function CityJobListingsPage({ params }: Props) {
           <div className="bg-white rounded-2xl border border-accent-200 p-8 text-center">
             <p className="text-accent-600">İlanlar yüklenirken bir hata oluştu.</p>
           </div>
-        ) : transformedJobs && transformedJobs.length > 0 ? (
-          <JobListingsEnhanced jobs={transformedJobs} categories={categories || []} initialCity={cityName} />
+        ) : mergedJobs && mergedJobs.length > 0 ? (
+          <JobListingsEnhanced jobs={mergedJobs as any} categories={categories || []} initialCity={cityName} />
         ) : (
           <div className="bg-white rounded-xl border border-secondary-200 p-12 text-center">
             <div className="max-w-md mx-auto">
@@ -285,11 +298,6 @@ export default async function CityJobListingsPage({ params }: Props) {
               </div>
             </div>
           </div>
-        )}
-
-        {/* External Jobs from Partner Sites */}
-        {externalJobs && externalJobs.length > 0 && (
-          <ExternalJobsSection jobs={externalJobs as ExternalJob[]} cityName={cityName} />
         )}
 
         {/* SEO Text Content */}

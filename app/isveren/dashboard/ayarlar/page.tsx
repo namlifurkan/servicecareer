@@ -1,6 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { Settings, Bell, Shield, CreditCard } from 'lucide-react'
+import { DeleteAccountButton } from '@/components/settings/delete-account-button'
+import { ChangePasswordForm } from '@/components/settings/change-password-form'
 
 export default async function EmployerSettingsPage() {
   const supabase = await createClient()
@@ -54,9 +56,9 @@ export default async function EmployerSettingsPage() {
             <div>
               <label className="block text-sm font-medium text-secondary-900 mb-1">Şifre</label>
               <p className="text-sm text-secondary-500">••••••••</p>
-              <button className="mt-2 text-sm text-primary-600 hover:text-primary-700 font-medium">
-                Şifre Değiştir
-              </button>
+              <div className="mt-2">
+                <ChangePasswordForm />
+              </div>
             </div>
           </div>
         </div>
@@ -136,9 +138,7 @@ export default async function EmployerSettingsPage() {
             </div>
           </div>
 
-          <button className="px-4 py-2 border border-accent-300 text-accent-600 hover:bg-accent-50 text-sm font-medium rounded-lg transition-colors">
-            Hesabı Sil
-          </button>
+          <DeleteAccountButton />
         </div>
       </div>
     </div>

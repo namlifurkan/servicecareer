@@ -53,22 +53,14 @@ export default function LoginPage() {
             {/* Role-specific Links */}
             <div className="mt-6 pt-6 border-t border-secondary-200">
               <p className="text-sm text-secondary-600 mb-3 text-center">
-                Özel giriş sayfaları:
+                İşveren misiniz?
               </p>
-              <div className="flex flex-col gap-2">
-                <Link
-                  href="/isveren/giris"
-                  className="text-sm text-center px-4 py-2 bg-secondary-50 hover:bg-secondary-100 text-secondary-700 rounded-lg transition-colors"
-                >
-                  İşveren Girişi
-                </Link>
-                <Link
-                  href="/aday/giris"
-                  className="text-sm text-center px-4 py-2 bg-secondary-50 hover:bg-secondary-100 text-secondary-700 rounded-lg transition-colors"
-                >
-                  Aday Girişi
-                </Link>
-              </div>
+              <Link
+                href="/isveren/giris"
+                className="block text-sm text-center px-4 py-2 bg-secondary-50 hover:bg-secondary-100 text-secondary-700 rounded-lg transition-colors"
+              >
+                İşveren Girişi
+              </Link>
             </div>
           </div>
         </div>

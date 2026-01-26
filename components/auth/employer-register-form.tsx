@@ -30,6 +30,7 @@ export function EmployerRegisterForm() {
       email,
       password,
       options: {
+        emailRedirectTo: `${window.location.origin}/isveren/giris`,
         data: {
           full_name,
           role: 'company',

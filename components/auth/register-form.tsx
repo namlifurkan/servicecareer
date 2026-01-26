@@ -29,6 +29,7 @@ export function RegisterForm() {
       email,
       password,
       options: {
+        emailRedirectTo: `${window.location.origin}/giris`,
         data: {
           full_name,
           role,

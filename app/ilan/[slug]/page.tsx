@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { headers } from 'next/headers'
 import { notFound } from 'next/navigation'
 import Image from 'next/image'
 import { Header } from '@/components/header'
@@ -247,8 +248,13 @@ export default async function JobDetailPage({ params }: { params: Promise<{ slug
     isFavorited = await checkIsFavorited(job.id)
   }
 
-  // Increment view count using RPC (bypasses RLS)
-  await supabase.rpc('increment_view_count', { job_id_param: job.id })
+  // Increment view count - skip bots/crawlers
+  const headersList = await headers()
+  const ua = (headersList.get('user-agent') || '').toLowerCase()
+  const isBot = /bot|crawl|spider|slurp|baiduspider|yandex|sogou|exabot|facebot|ia_archiver|semrush|ahref|mj12bot|dotbot|petalbot|bytespider|gptbot|claudebot/i.test(ua)
+  if (!isBot) {
+    await supabase.rpc('increment_view_count', { job_id_param: job.id })
+  }
 
   const { data: similarJobs } = await supabase
     .from('jobs')

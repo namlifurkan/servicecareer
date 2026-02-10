@@ -20,6 +20,8 @@ export type JobPositionType =
   | 'doner_master'
   | 'sushi_chef'
   | 'kitchen_helper'
+  // Yönetim Pozisyonları
+  | 'manager'
   // Servis Pozisyonları
   | 'restaurant_manager'
   | 'floor_manager'
@@ -80,6 +82,8 @@ export const JOB_POSITION_LABELS: Record<JobPositionType, string> = {
   doner_master: 'Döner Ustası',
   sushi_chef: 'Sushi Şefi',
   kitchen_helper: 'Mutfak Yardımcısı',
+  // Yönetim
+  manager: 'Yönetici',
   // Servis
   restaurant_manager: 'Restoran Müdürü',
   floor_manager: 'Salon Şefi',
@@ -143,6 +147,7 @@ export const POSITION_CATEGORIES = {
     'sushi_chef',
     'kitchen_helper',
   ] as JobPositionType[],
+  management: ['manager'] as JobPositionType[],
   service: [
     'restaurant_manager',
     'floor_manager',
@@ -747,6 +752,7 @@ export function getPositionsGrouped(): Array<{
 }> {
   const categoryLabels: Record<keyof typeof POSITION_CATEGORIES, string> = {
     kitchen: 'Mutfak',
+    management: 'Yönetim',
     service: 'Servis',
     bar: 'Bar',
     cafe: 'Kafe',
